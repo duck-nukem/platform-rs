@@ -1,0 +1,4 @@
+delimiter = "?"  # this way built-in support is better as it looks like PHP
+
+[optimizations]
+rm_whitespace = true

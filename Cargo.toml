@@ -1,0 +1,17 @@
+[package]
+name = "platform-rs"
+version = "0.1.0"
+edition = "2018"
+
+[dependencies]
+axum = "0.6.20"
+axum-login = { version = "0.5.0", features = ["sqlite"] }
+bcrypt = "0.15.0"
+rand = { version = "0.8.5", features = ["min_const_gen"] }
+sailfish = "0.8.0"
+serde = { version = "1.0.183", features = ["derive", "std"] }
+sqlx = { version = "0.6.3", features = ["runtime-tokio-rustls", "sqlite"] }
+tokio = { version = "1.0", features = ["full"] }
+tower-http = { version = "0.4.3", features = ["trace"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
