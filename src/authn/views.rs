@@ -1,9 +1,11 @@
+use std::convert::TryFrom;
+
 use axum::{Extension, Form};
 use axum::response::{IntoResponse, Redirect, Response};
-use bcrypt::verify;
+use bcrypt::{hash_with_salt, verify};
 use sailfish::TemplateOnce;
 use serde::{Deserialize, Serialize};
-use sqlx::{Error, SqlitePool};
+use sqlx::{Error, Execute, Executor, SqlitePool};
 
 use crate::AuthContext;
 use crate::authn::models::User;
@@ -13,10 +15,38 @@ pub async fn login_view() -> impl IntoResponse {
     render(LoginTemplate {})
 }
 
-pub async fn logged_in_view(
-    Extension(user): Extension<User>,
+pub async fn signup_view() -> impl IntoResponse {
+    render(SignupTemplate {})
+}
+
+pub async fn signup_handler(
+    Extension(pool): Extension<SqlitePool>,
+    Form(signup): Form<Credentials>,
 ) -> impl IntoResponse {
-    render(GreetingsTemplate { user: user.to_owned() })
+    let salt = "1234567890123456".as_bytes(); // TODO: Use app secret
+    let password_hash = hash_with_salt(
+        signup.password,
+        12,
+        <[u8; 16]>::try_from(salt).unwrap(),
+    );
+    let mut connection = match pool.acquire().await {
+        Ok(pool) => pool,
+        Err(_) => return Redirect::to("signup?reason=error"),
+    };
+    let query = match password_hash {
+        Ok(hash) => {
+            let password_hash = hash.to_string();
+            sqlx::query("INSERT INTO users (name, password_hash) VALUES (?, ?);")
+                .bind(signup.username)
+                .bind(password_hash)
+        }
+        Err(_) => return Redirect::to("/signup?reason=error")
+    };
+
+    match query.execute(&mut connection).await {
+        Ok(_) => Redirect::to("/login?reason=success"),
+        Err(_) => Redirect::to("/signup?reason=error")
+    }
 }
 
 pub async fn login_handler(
@@ -32,11 +62,9 @@ pub async fn login_handler(
 
     let user = match user_query {
         Ok(found_user) => found_user,
-        Err(_) => return Redirect::to("/signup?reason=invalid").into_response()
+        Err(_) => return Redirect::to("/login?reason=invalid").into_response()
     };
 
-    // for registration?
-    // salt.copy_from_slice("1234567890123456".as_bytes());
     let verified_password = verify(
         login.password.clone().as_str(),
         user.password_hash.clone().as_str(),
@@ -47,11 +75,17 @@ pub async fn login_handler(
                 auth.login(&user).await.unwrap();
                 Redirect::to("/greet").into_response()
             } else {
-                Redirect::to("/signup?reason=invalid").into_response()
+                Redirect::to("/login?reason=invalid").into_response()
             }
         }
-        Err(_password_error) => Redirect::to("/signup?reason=error").into_response(),
+        Err(_password_error) => Redirect::to("/login?reason=error").into_response(),
     }
+}
+
+pub async fn logged_in_view(
+    auth: AuthContext,
+) -> impl IntoResponse {
+    render(GreetingsTemplate { user: auth.current_user.unwrap().to_owned() })
 }
 
 pub async fn logout_handler(mut auth: AuthContext) -> Response {
@@ -68,6 +102,10 @@ pub struct Credentials {
 #[derive(TemplateOnce)]
 #[template(path = "login.html")]
 struct LoginTemplate {}
+
+#[derive(TemplateOnce)]
+#[template(path = "signup.html")]
+struct SignupTemplate {}
 
 #[derive(TemplateOnce)]
 #[template(path = "logged_in.html")]

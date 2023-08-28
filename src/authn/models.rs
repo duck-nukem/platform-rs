@@ -15,7 +15,6 @@ impl AuthUser<i64> for User {
     }
 
     fn get_password_hash(&self) -> SecretVec<u8> {
-        let _salt: [u8; 16] = [0; 16]; // Initialize with zeros
         SecretVec::new(self.password_hash.clone().into())
     }
 }
