@@ -1,7 +1,8 @@
-use axum::{Router, routing::get, routing::post};
+use axum::{Extension, Router, routing::get, routing::post};
 use axum_login::{
     AuthLayer, axum_sessions::{async_session::MemoryStore, SessionLayer}, RequireAuthorizationLayer, SqliteStore,
 };
+use dotenv::dotenv;
 use rand::random;
 use sqlx::sqlite::SqlitePoolOptions;
 use tower_http::trace;
@@ -16,28 +17,28 @@ mod templates;
 
 type AuthContext = axum_login::extractors::AuthContext<i64, User, SqliteStore<User>>;
 
-#[tokio::main]
-async fn main() {
+pub async fn app() -> Router {
     let secret = random::<[u8; 64]>();
 
     let session_store = MemoryStore::new();
     let session_layer = SessionLayer::new(session_store, &secret).with_secure(false);
     let pool = SqlitePoolOptions::new().connect("sqlite.db").await.unwrap();
 
-    let user_store = SqliteStore::<User>::new(pool);
+    let user_store = SqliteStore::<User>::new(pool.clone());
     let auth_layer = AuthLayer::new(user_store, &secret);
 
-    let log_level = Level::INFO;
-    tracing_subscriber::fmt()
-        .with_target(false)
-        .compact()
-        .with_max_level(log_level)
-        .init();
+    let log_level = Level::DEBUG;
+    // tracing_subscriber::fmt()
+    //     .with_target(false)
+    //     .compact()
+    //     .with_max_level(log_level)
+    //     .init();
     let trace_layer = TraceLayer::new_for_http()
+        .on_request(trace::DefaultOnRequest::new().level(log_level))
         .make_span_with(trace::DefaultMakeSpan::new().level(log_level))
         .on_response(trace::DefaultOnResponse::new().level(log_level));
 
-    let app = Router::new()
+    Router::new()
         .route("/greet", get(views::logged_in_view))
         // ⬆️ authenticated views go above
         .route_layer(RequireAuthorizationLayer::<i64, User>::login())
@@ -48,11 +49,17 @@ async fn main() {
         .route("/signup", get(views::login_view))
         .layer(auth_layer)
         .layer(session_layer)
-        .layer(trace_layer);
+        .layer(trace_layer)
+        .layer(Extension(pool.clone()))
+}
 
-
+#[tokio::main]
+async fn main() {
+    dotenv().ok();
     tracing::info!("Ready to accept connections at :3000");
-    let thread = tokio::spawn(axum::Server::bind(&"0.0.0.0:3000".parse().unwrap())
-        .serve(app.into_make_service()));
+    let thread = tokio::spawn(
+        axum::Server::bind(&"0.0.0.0:3000".parse().unwrap())
+            .serve(app().await.into_make_service())
+    );
     let _ = tokio::try_join!(thread);
 }
