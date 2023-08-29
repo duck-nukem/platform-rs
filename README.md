@@ -2,6 +2,8 @@
 
 Use the [justfile](https://github.com/casey/just) to perform certain operations
 
+https://cheatography.com/linux-china/cheat-sheets/justfile/
+
 `just --list`
 
 # TODOs
@@ -21,7 +23,7 @@ in no particular order
 
 These seem related?
 - [ ] Performance monitoring (CPU/Mem/DB - maybe Docker + Grafana?)
-- [ ] Postgres?
+- [x] Postgres?
 - [x] Create sqlite db in github actions (maybe Docker + Postgres?)
 
 # Project aims

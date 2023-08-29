@@ -1,33 +1,34 @@
-use axum::{Extension, Router, routing::get, routing::post};
+use authn::views::login;
+use axum::{routing::get, routing::post, Extension, Router};
 use axum_login::{
-    AuthLayer, axum_sessions::{async_session::MemoryStore, SessionLayer}, RequireAuthorizationLayer, SqliteStore,
+    axum_sessions::{async_session::MemoryStore, SessionLayer},
+    AuthLayer, PostgresStore, RequireAuthorizationLayer,
 };
+use database::get_pool;
 use dotenv::dotenv;
 use rand::random;
-use sqlx::sqlite::SqlitePoolOptions;
 use tower_http::trace;
 use tower_http::trace::TraceLayer;
 use tracing::Level;
-use authn::views::login;
 
 use crate::authn::models::User;
 use crate::authn::views;
 
 mod authn;
-mod templates;
 mod database;
 mod deserialization;
+mod templates;
 
-type AuthContext = axum_login::extractors::AuthContext<i64, User, SqliteStore<User>>;
+type AuthContext = axum_login::extractors::AuthContext<i64, User, PostgresStore<User>>;
 
 pub async fn app() -> Router {
     let secret = random::<[u8; 64]>();
 
     let session_store = MemoryStore::new();
     let session_layer = SessionLayer::new(session_store, &secret).with_secure(false);
-    let pool = SqlitePoolOptions::new().connect("sqlite.db").await.unwrap();
+    let pool = get_pool().await;
 
-    let user_store = SqliteStore::<User>::new(pool.clone());
+    let user_store = PostgresStore::<User>::new(pool.clone());
     let auth_layer = AuthLayer::new(user_store, &secret);
 
     let log_level = Level::INFO;
@@ -63,8 +64,7 @@ async fn main() {
         .init();
 
     let thread = tokio::spawn(
-        axum::Server::bind(&"0.0.0.0:3000".parse().unwrap())
-            .serve(app().await.into_make_service())
+        axum::Server::bind(&"0.0.0.0:3000".parse().unwrap()).serve(app().await.into_make_service()),
     );
     tracing::info!("Ready to accept connections at :3000");
     let _ = tokio::try_join!(thread);

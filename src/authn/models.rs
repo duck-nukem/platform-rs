@@ -1,10 +1,10 @@
-use axum_login::AuthUser;
 use axum_login::secrecy::SecretVec;
+use axum_login::AuthUser;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Default, Clone, Serialize)]
 pub struct NewUser {
-    pub password_hash: String,
+    pub raw_password: String,
     pub name: String,
 }
 

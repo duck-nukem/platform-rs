@@ -1,27 +1,32 @@
-use sqlx::{Sqlite, SqlitePool};
+use dotenv::dotenv;
 use sqlx::pool::PoolConnection;
-use sqlx::sqlite::SqliteConnectOptions;
+use sqlx::postgres::PgConnectOptions;
+use sqlx::{PgPool, Postgres};
+use std::env;
 
-pub type DatabaseConnection = PoolConnection<Sqlite>;
+pub type DatabaseConnection = PoolConnection<Postgres>;
 
+pub async fn get_pool() -> PgPool {
+    dotenv().ok();
 
-#[cfg(test)]
-pub async fn get_connection() -> DatabaseConnection {
-    let options = SqliteConnectOptions::new()
-        .filename("test_sqlite.db")
-        .create_if_missing(true);
-    let pool = SqlitePool::connect_with(options).await.unwrap();
-
-    pool.acquire().await.unwrap()
+    let options = PgConnectOptions::new()
+        .host(
+            env::var("DB_HOST")
+                .unwrap_or_else(|_| String::from("localhost"))
+                .as_str(),
+        )
+        .port(
+            env::var("DB_PORT")
+                .unwrap_or_else(|_| String::from("5432"))
+                .parse::<u16>()
+                .unwrap(),
+        )
+        .username(env::var("DB_USER").unwrap().as_str())
+        .password(env::var("DB_PASS").unwrap().as_str())
+        .database(env::var("DB_NAME").unwrap().as_str());
+    PgPool::connect_with(options).await.unwrap()
 }
 
-
-#[cfg(not(test))]
 pub async fn get_connection() -> DatabaseConnection {
-    let options = SqliteConnectOptions::new()
-        .filename("sqlite.db")
-        .create_if_missing(true);
-    let pool = SqlitePool::connect_with(options).await.unwrap();
-
-    pool.acquire().await.unwrap()
+    get_pool().await.acquire().await.unwrap()
 }

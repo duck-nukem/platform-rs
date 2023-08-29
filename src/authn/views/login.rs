@@ -1,23 +1,21 @@
 use axum::extract::Query;
-use axum::Form;
 use axum::response::{IntoResponse, Redirect};
+use axum::Form;
 use bcrypt::verify;
 use sailfish::TemplateOnce;
 
-use crate::AuthContext;
 use crate::authn::models::Credentials;
 use crate::authn::repository::find_by_username;
 use crate::authn::views::Params;
 use crate::database::get_connection;
 use crate::templates::render;
+use crate::AuthContext;
 
-pub async fn login_view(
-    Query(params): Query<Params>,
-) -> impl IntoResponse
-{
-    render(LoginTemplate { message: params.message.unwrap_or("".parse().unwrap()) })
+pub async fn login_view(Query(params): Query<Params>) -> impl IntoResponse {
+    render(LoginTemplate {
+        message: params.message.unwrap_or("".parse().unwrap()),
+    })
 }
-
 
 pub async fn login_handler(
     mut auth: AuthContext,
@@ -66,10 +64,7 @@ struct LoginTemplate {
 
 #[cfg(test)]
 mod tests {
-    use std::convert::TryFrom;
-
     use axum_test::TestServer;
-    use bcrypt::hash_with_salt;
 
     use crate::app;
     use crate::authn::models::{Credentials, NewUser};
@@ -80,8 +75,12 @@ mod tests {
     async fn test_login_handler_should_redirect_if_user_is_not_found() {
         let server = TestServer::new(app().await.into_make_service()).unwrap();
 
-        let response = server.post("/login")
-            .form(&Credentials { username: "".into(), password: "".into() })
+        let response = server
+            .post("/login")
+            .form(&Credentials {
+                username: "".into(),
+                password: "".into(),
+            })
             .await;
 
         assert_eq!(response.header("Location"), "/login?message=invalid")
@@ -91,33 +90,45 @@ mod tests {
     async fn test_login_handler_should_redirect_if_password_is_invalid() {
         create_user(
             get_connection().await,
-            NewUser { name: "user".into(), password_hash: "no_hash".into() },
-        ).await.unwrap();
+            NewUser {
+                name: "user".into(),
+                raw_password: "password".into(),
+            },
+        )
+        .await
+        .unwrap();
         let server = TestServer::new(app().await.into_make_service()).unwrap();
 
-        let response = server.post("/login")
-            .form(&Credentials { username: "user".into(), password: "no_hash".into() })
+        let response = server
+            .post("/login")
+            .form(&Credentials {
+                username: "user".into(),
+                password: "wrong_password".into(),
+            })
             .await;
 
-        assert_eq!(response.header("Location"), "/login?message=error")
+        assert_eq!(response.header("Location"), "/login?message=invalid")
     }
 
     #[tokio::test]
     async fn test_login_handler_should_redirect_if_credentials_are_valid() {
-        let salt = "1234567890123456".as_bytes(); // TODO: Use app secret
-        let password_hash = hash_with_salt(
-            "password",
-            12,
-            <[u8; 16]>::try_from(salt).unwrap(),
-        ).unwrap().to_string();
         create_user(
             get_connection().await,
-            NewUser { name: "user".into(), password_hash },
-        ).await.unwrap();
+            NewUser {
+                name: "valid_user".into(),
+                raw_password: "password".into(),
+            },
+        )
+        .await
+        .unwrap();
         let server = TestServer::new(app().await.into_make_service()).unwrap();
 
-        let response = server.post("/login")
-            .form(&Credentials { username: "valid_user".into(), password: "password".into() })
+        let response = server
+            .post("/login")
+            .form(&Credentials {
+                username: "valid_user".into(),
+                password: "password".into(),
+            })
             .await;
 
         assert_eq!(response.header("Location"), "/greet")
