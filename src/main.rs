@@ -8,12 +8,15 @@ use sqlx::sqlite::SqlitePoolOptions;
 use tower_http::trace;
 use tower_http::trace::TraceLayer;
 use tracing::Level;
+use authn::views::login;
 
 use crate::authn::models::User;
 use crate::authn::views;
 
 mod authn;
 mod templates;
+mod database;
+mod deserialization;
 
 type AuthContext = axum_login::extractors::AuthContext<i64, User, SqliteStore<User>>;
 
@@ -38,8 +41,8 @@ pub async fn app() -> Router {
         // ⬆️ authenticated views go above
         .route_layer(RequireAuthorizationLayer::<i64, User>::login())
         // ⬇️ public views go below
-        .route("/login", get(views::login_view))
-        .route("/login", post(views::login_handler))
+        .route("/login", get(login::login_view))
+        .route("/login", post(login::login_handler))
         .route("/logout", post(views::logout_handler))
         .route("/signup", get(views::signup_view))
         .route("/signup", post(views::signup_handler))
@@ -58,11 +61,11 @@ async fn main() {
         .compact()
         .with_max_level(Level::INFO)
         .init();
-    tracing::info!("Ready to accept connections at :3000");
 
     let thread = tokio::spawn(
         axum::Server::bind(&"0.0.0.0:3000".parse().unwrap())
             .serve(app().await.into_make_service())
     );
+    tracing::info!("Ready to accept connections at :3000");
     let _ = tokio::try_join!(thread);
 }

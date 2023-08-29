@@ -15,8 +15,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - uses: extractions/setup-just@v1
     - uses: actions/checkout@v3
+    - name: Setup
+      run: just install_deps
     - name: Build
       run: cargo build --verbose
     - name: Run tests
-      run: cargo test --verbose
+      run: just test

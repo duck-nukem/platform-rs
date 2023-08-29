@@ -1,15 +1,32 @@
+# Installation
+
+Use the [justfile](https://github.com/casey/just) to perform certain operations
+
+`just --list`
+
 # TODOs
 
 in no particular order
 
-- [x] Add DB migrations
 - [ ] Production-like sessions (redis/db)
-- ~~Reload templates without server restart -> handlebars~~
 - [ ] i18n in templates
-- [ ] Performance monitoring (CPU/Mem/DB)
-- [x] Testing approach
-- [x] env variables
 - [ ] ability to refer to routes via variables not magic strings
 - [ ] route guards (e.g. -> 401 redirect to login)
-- [ ] Postgres?
 - [ ] JS Nonce for security
+- [ ] Abstractions!!
+- [x] Add DB migrations
+- [x] Testing approach
+- [x] env variables
+- ~~Reload templates without server restart -> handlebars~~
+
+These seem related?
+- [ ] Performance monitoring (CPU/Mem/DB - maybe Docker + Grafana?)
+- [ ] Postgres?
+- [x] Create sqlite db in github actions (maybe Docker + Postgres?)
+
+# Project aims
+
+- No javascript (or as minimal as possible)
+- Full SSR
+- Browser native only (alerts, HTML5 elements, etc)
+- Max performance & minimum resource requirements

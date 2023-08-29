@@ -1,6 +1,6 @@
 use axum_login::AuthUser;
 use axum_login::secrecy::SecretVec;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Default, Clone, sqlx::FromRow, Serialize)]
 pub struct User {
@@ -17,4 +17,10 @@ impl AuthUser<i64> for User {
     fn get_password_hash(&self) -> SecretVec<u8> {
         SecretVec::new(self.password_hash.clone().into())
     }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Credentials {
+    pub username: String,
+    pub password: String,
 }

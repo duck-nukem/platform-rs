@@ -4,8 +4,8 @@
     <? include!("headers.html"); ?>
 </head>
 <body>
-<? if !params.message.is_empty() { ?>
-<blockquote><?= params.message ?></blockquote>
+<? if !message.is_empty() { ?>
+<blockquote><?= message ?></blockquote>
 <? } ?>
 <form method="POST" action="/login">
     <label for="username">Username</label>
