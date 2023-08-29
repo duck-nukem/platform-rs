@@ -2,6 +2,12 @@ use axum_login::AuthUser;
 use axum_login::secrecy::SecretVec;
 use serde::{Deserialize, Serialize};
 
+#[derive(Debug, Default, Clone, Serialize)]
+pub struct NewUser {
+    pub password_hash: String,
+    pub name: String,
+}
+
 #[derive(Debug, Default, Clone, sqlx::FromRow, Serialize)]
 pub struct User {
     pub id: i64,

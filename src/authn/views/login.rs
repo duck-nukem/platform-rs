@@ -70,11 +70,11 @@ mod tests {
 
     use axum_test::TestServer;
     use bcrypt::hash_with_salt;
-    use sqlx::query;
-    use sqlx::sqlite::SqlitePoolOptions;
 
     use crate::app;
-    use crate::authn::models::Credentials;
+    use crate::authn::models::{Credentials, NewUser};
+    use crate::authn::repository::create_user;
+    use crate::database::get_connection;
 
     #[tokio::test]
     async fn test_login_handler_should_redirect_if_user_is_not_found() {
@@ -89,9 +89,10 @@ mod tests {
 
     #[tokio::test]
     async fn test_login_handler_should_redirect_if_password_is_invalid() {
-        let pool = SqlitePoolOptions::new().connect("sqlite.db").await.unwrap();
-        let query = query!("INSERT INTO users (name, password_hash) VALUES (?, ?);", "user", "no_hash");
-        query.execute(&pool).await.unwrap();
+        create_user(
+            get_connection().await,
+            NewUser { name: "user".into(), password_hash: "no_hash".into() },
+        ).await.unwrap();
         let server = TestServer::new(app().await.into_make_service()).unwrap();
 
         let response = server.post("/login")
@@ -103,15 +104,16 @@ mod tests {
 
     #[tokio::test]
     async fn test_login_handler_should_redirect_if_credentials_are_valid() {
-        let pool = SqlitePoolOptions::new().connect("sqlite.db").await.unwrap();
         let salt = "1234567890123456".as_bytes(); // TODO: Use app secret
         let password_hash = hash_with_salt(
             "password",
             12,
             <[u8; 16]>::try_from(salt).unwrap(),
         ).unwrap().to_string();
-        let query = query!("INSERT INTO users (name, password_hash) VALUES (?, ?);", "valid_user", password_hash);
-        query.execute(&pool).await.unwrap();
+        create_user(
+            get_connection().await,
+            NewUser { name: "user".into(), password_hash },
+        ).await.unwrap();
         let server = TestServer::new(app().await.into_make_service()).unwrap();
 
         let response = server.post("/login")

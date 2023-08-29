@@ -7,6 +7,6 @@ run:
     cargo run --color=always --package platform-rs --bin platform-rs
 
 test:
-    touch sqlite.db
-    sqlx migrate run --database-url sqlite://sqlite.db
+    touch test_sqlite.db
+    sqlx migrate run --database-url sqlite://test_sqlite.db
     cargo test
