@@ -1,5 +1,12 @@
 use authn::views::login;
-use axum::{routing::get, routing::post, Extension, Router};
+use axum::{
+    http::{header::LOCATION, HeaderValue, Request, StatusCode},
+    middleware::Next,
+    response::Response,
+    routing::get,
+    routing::post,
+    Extension, Router,
+};
 use axum_login::{
     axum_sessions::{async_session::MemoryStore, SessionLayer},
     AuthLayer, PostgresStore, RequireAuthorizationLayer,
@@ -20,6 +27,26 @@ mod deserialization;
 mod templates;
 
 type AuthContext = axum_login::extractors::AuthContext<i64, User, PostgresStore<User>>;
+
+async fn http_status_redirect_handler<B>(
+    req: Request<B>,
+    next: Next<B>,
+) -> Result<Response, StatusCode> {
+    let mut response = next.run(req).await;
+    let is_unauthenticated = response.status() == StatusCode::UNAUTHORIZED;
+    let is_unauthorized = response.status() == StatusCode::FORBIDDEN;
+    let is_required_auth_missing_or_invalid = is_unauthenticated || is_unauthorized;
+
+    if is_required_auth_missing_or_invalid {
+        *response.status_mut() = StatusCode::FOUND;
+        response.headers_mut().insert(
+            LOCATION,
+            HeaderValue::from_static("login?message=auth_required"),
+        );
+    }
+
+    Ok(response)
+}
 
 pub async fn app() -> Router {
     let secret = random::<[u8; 64]>();
@@ -42,15 +69,18 @@ pub async fn app() -> Router {
         // ⬆️ authenticated views go above
         .route_layer(RequireAuthorizationLayer::<i64, User>::login())
         // ⬇️ public views go below
+        .route("/not-found", get(views::not_found))
         .route("/login", get(login::login_view))
         .route("/login", post(login::login_handler))
         .route("/logout", post(views::logout_handler))
         .route("/signup", get(views::signup_view))
         .route("/signup", post(views::signup_handler))
+        .route_layer(axum::middleware::from_fn(http_status_redirect_handler))
         .layer(auth_layer)
         .layer(session_layer)
         .layer(trace_layer)
         .layer(Extension(pool.clone()))
+        .layer(tower_http::compression::CompressionLayer::new())
 }
 
 #[tokio::main]
