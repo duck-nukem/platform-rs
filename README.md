@@ -13,7 +13,7 @@ in no particular order
 - [ ] Production-like sessions (redis/db)
 - [ ] i18n in templates
 - [ ] ability to refer to routes via variables not magic strings
-- [ ] route guards (e.g. -> 401 redirect to login)
+- [x] route guards (e.g. -> 401 redirect to login)
 - [ ] JS Nonce for security
 - [ ] Abstractions!!
 - [x] Add DB migrations

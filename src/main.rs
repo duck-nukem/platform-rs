@@ -69,7 +69,6 @@ pub async fn app() -> Router {
         // ⬆️ authenticated views go above
         .route_layer(RequireAuthorizationLayer::<i64, User>::login())
         // ⬇️ public views go below
-        .route("/not-found", get(views::not_found))
         .route("/login", get(login::login_view))
         .route("/login", post(login::login_handler))
         .route("/logout", post(views::logout_handler))
