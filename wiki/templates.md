@@ -23,13 +23,13 @@ The nonce is currently set to the request id
 To be able to run scripts, you can either use 3rd party ones
 
 ```html
-<script src="unpkg.com/test.js" nonce="<?- nonce ?>"></script>
+<script src="unpkg.com/test.js" nonce="<?= nonce ?>"></script>
 ```
 
 or inlines
 
 ```html
-<script nonce="<?- nonce ?>">alert("CSP Works!");</script>
+<script nonce="<?= nonce ?>">alert("CSP Works!");</script>
 ```
 
 the important bit is that the nonce is defined.
