@@ -1,22 +1,16 @@
 use authn::views::login;
-use axum::{
-    http::{header::LOCATION, HeaderValue, Request, StatusCode},
-    middleware::{self, Next},
-    response::Response,
-    routing::get,
-    routing::post,
-    Extension, Router,
-};
+use axum::{middleware, routing::get, routing::post, Extension, Router};
 use axum_login::{
     axum_sessions::{async_session::MemoryStore, SessionLayer},
     AuthLayer, PostgresStore, RequireAuthorizationLayer,
 };
 use database::get_pool;
 use dotenv::dotenv;
-use http::route_auth_guard;
+use http::{route_auth_guard, set_security_headers};
 use rand::random;
 use tower_http::trace;
 use tower_http::trace::TraceLayer;
+use tower_request_id::RequestIdLayer;
 use tracing::Level;
 
 use crate::authn::models::User;
@@ -57,10 +51,12 @@ pub async fn app() -> Router {
         .route("/signup", get(views::signup_view))
         .route("/signup", post(views::signup_handler))
         .route_layer(middleware::from_fn(route_auth_guard))
+        .route_layer(middleware::from_fn(set_security_headers))
         .layer(auth_layer)
         .layer(session_layer)
         .layer(trace_layer)
         .layer(Extension(pool.clone()))
+        .layer(RequestIdLayer)
         .layer(tower_http::compression::CompressionLayer::new())
 }
 

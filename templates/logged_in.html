@@ -4,7 +4,9 @@
     <? include!("headers.html"); ?>
 </head>
 <body>
-Hello <?= user.name ?>!
+Hello <?= user.name ?>! The nonce is <?= nonce ?>
+<script>alert("Any script can run :(");</script>
+<script nonce="<?- nonce ?>">alert("CSP works");</script>
 <form method="POST" action="/logout">
     <button type="submit">Log out</button>
 </form>

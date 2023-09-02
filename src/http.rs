@@ -1,8 +1,12 @@
 use axum::{
-    http::{header::LOCATION, HeaderValue, Request, StatusCode},
+    http::{
+        header::{CONTENT_SECURITY_POLICY, LOCATION},
+        HeaderValue, Request, StatusCode,
+    },
     middleware::Next,
     response::Response,
 };
+use tower_request_id::RequestId;
 
 pub async fn route_auth_guard<B>(req: Request<B>, next: Next<B>) -> Result<Response, StatusCode> {
     let mut response = next.run(req).await;
@@ -17,6 +21,29 @@ pub async fn route_auth_guard<B>(req: Request<B>, next: Next<B>) -> Result<Respo
             HeaderValue::from_static("login?message=auth_required"),
         );
     }
+
+    Ok(response)
+}
+
+pub async fn set_security_headers<B>(
+    req: Request<B>,
+    next: Next<B>,
+) -> Result<Response, StatusCode> {
+    let request_id = &*req
+        .extensions()
+        .get::<RequestId>()
+        .map(ToString::to_string)
+        .unwrap();
+    let mut response = next.run(req).await;
+    let header_value = format!(
+        "object-src 'none'; base-uri 'none'; script-src 'nonce-{}'",
+        request_id.to_string()
+    )
+    .to_owned();
+    response.headers_mut().insert(
+        CONTENT_SECURITY_POLICY,
+        HeaderValue::from_bytes(header_value.clone().as_bytes()).unwrap(),
+    );
 
     Ok(response)
 }

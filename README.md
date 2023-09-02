@@ -14,7 +14,7 @@ in no particular order
 - [ ] i18n in templates
 - [ ] ability to refer to routes via variables not magic strings
 - [x] route guards (e.g. -> 401 redirect to login)
-- [ ] JS Nonce for security
+- [x] JS Nonce for security -> see GreetingsTemplate / logged_in.html
 - [ ] Abstractions!!
 - [x] Add DB migrations
 - [x] Testing approach

@@ -3,11 +3,14 @@ use crate::database::get_connection;
 use crate::deserialization::empty_string_as_none;
 use crate::templates::render;
 use crate::AuthContext;
+use axum::body::Body;
 use axum::extract::Query;
+use axum::http::Request;
 use axum::response::{IntoResponse, Redirect, Response};
 use axum::Form;
 use sailfish::TemplateOnce;
 use serde::Deserialize;
+use tower_request_id::RequestId;
 
 use super::models::NewUser;
 use super::repository::create_user;
@@ -39,10 +42,15 @@ pub async fn signup_handler(Form(signup): Form<Credentials>) -> impl IntoRespons
     }
 }
 
-pub async fn logged_in_view(auth: AuthContext) -> impl IntoResponse {
-    tracing::error!("{:?}", auth.current_user.as_ref().as_mut());
+pub async fn logged_in_view(auth: AuthContext, req: Request<Body>) -> impl IntoResponse {
+    let request_id = &*req
+        .extensions()
+        .get::<RequestId>()
+        .map(ToString::to_string)
+        .unwrap();
     render(GreetingsTemplate {
         user: auth.current_user.unwrap().to_owned(),
+        nonce: request_id.to_string(),
     })
 }
 
@@ -61,4 +69,5 @@ struct SignupTemplate {
 #[template(path = "logged_in.html")]
 struct GreetingsTemplate {
     user: User,
+    nonce: String,
 }
