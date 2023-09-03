@@ -5,6 +5,7 @@ install_deps:
 
 run_aux_services:
 	docker compose up -d
+	@sleep 1
 
 run: run_aux_services
     cargo run --color=always --package platform-rs --bin platform-rs
@@ -12,7 +13,7 @@ run: run_aux_services
 make_migration *ARGS:
     sqlx migrate add {{ ARGS }}
 
-migrate:
+migrate: run_aux_services
     sqlx migrate run --database-url postgresql://postgres:password@localhost:5432/postgres
 
 test: run_aux_services migrate

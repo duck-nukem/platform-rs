@@ -30,6 +30,7 @@ in no particular order
 - [ ] test db isolation
 - [ ] ability to refer to routes via variables not magic strings
 - [ ] tie sessions to users in the DB?
+- [ ] pre-commit hooks
 
 # Project aims
 
