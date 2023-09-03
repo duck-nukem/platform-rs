@@ -1400,6 +1400,7 @@ dependencies = [
  "axum-login",
  "axum-test",
  "bcrypt",
+ "bincode",
  "dotenv",
  "rand",
  "sailfish",

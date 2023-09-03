@@ -1,17 +1,20 @@
-use authn::views::login;
+use std::time::Duration;
+
 use axum::{middleware, routing::get, routing::post, Extension, Router};
 use axum_login::{
-    axum_sessions::{async_session::MemoryStore, SessionLayer},
-    AuthLayer, PostgresStore, RequireAuthorizationLayer,
+    axum_sessions::SessionLayer, AuthLayer, PostgresStore, RequireAuthorizationLayer,
 };
-use database::get_pool;
 use dotenv::dotenv;
-use http::{route_auth_guard, set_security_headers};
 use rand::random;
 use tower_http::trace;
 use tower_http::trace::TraceLayer;
 use tower_request_id::RequestIdLayer;
 use tracing::Level;
+
+use authn::views::login;
+use database::get_pool;
+use http::{route_auth_guard, set_security_headers};
+use session::DatabaseSessionStore;
 
 use crate::authn::models::User;
 use crate::authn::views;
@@ -20,16 +23,19 @@ mod authn;
 mod database;
 mod deserialization;
 mod http;
+mod session;
 mod templates;
 
 type AuthContext = axum_login::extractors::AuthContext<i64, User, PostgresStore<User>>;
-
 pub async fn app() -> Router {
     let secret = random::<[u8; 64]>();
-
-    let session_store = MemoryStore::new();
-    let session_layer = SessionLayer::new(session_store, &secret).with_secure(false);
     let pool = get_pool().await;
+
+    let session_store = DatabaseSessionStore::new(pool.clone());
+    let session_layer = SessionLayer::new(session_store, &secret)
+        .with_http_only(true)
+        .with_secure(true)
+        .with_session_ttl(Some(Duration::from_secs(10 * 60)));
 
     let user_store = PostgresStore::<User>::new(pool.clone());
     let auth_layer = AuthLayer::new(user_store, &secret);

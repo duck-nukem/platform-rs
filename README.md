@@ -10,9 +10,9 @@ https://cheatography.com/linux-china/cheat-sheets/justfile/
 
 in no particular order
 
-- [ ] Production-like sessions (redis/db)
+## Core
+- [x] Production-like sessions (redis/db)
 - [ ] i18n in templates
-- [ ] ability to refer to routes via variables not magic strings
 - [x] route guards (e.g. -> 401 redirect to login)
 - [x] JS Nonce for security -> see GreetingsTemplate / logged_in.html
 - [ ] Abstractions!!
@@ -21,10 +21,15 @@ in no particular order
 - [x] env variables
 - ~~Reload templates without server restart -> handlebars~~
 
-These seem related?
+## Postgres
 - [ ] Performance monitoring (CPU/Mem/DB - maybe Docker + Grafana?)
 - [x] Postgres?
 - [x] Create sqlite db in github actions (maybe Docker + Postgres?)
+
+## Extras
+- [ ] test db isolation
+- [ ] ability to refer to routes via variables not magic strings
+- [ ] tie sessions to users in the DB?
 
 # Project aims
 

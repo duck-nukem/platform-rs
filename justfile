@@ -9,9 +9,13 @@ run_aux_services:
 run: run_aux_services
     cargo run --color=always --package platform-rs --bin platform-rs
 
-test: run_aux_services
-    @echo "Let's give the DB a chance to start up..." && sleep 5
+make_migration *ARGS:
+    sqlx migrate add {{ ARGS }}
+
+migrate:
     sqlx migrate run --database-url postgresql://postgres:password@localhost:5432/postgres
+
+test: run_aux_services migrate
     cargo test --bin platform-rs
 
 reset_db:
