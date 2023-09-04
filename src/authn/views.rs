@@ -1,8 +1,3 @@
-use crate::authn::models::{Credentials, User};
-use crate::database::get_connection;
-use crate::deserialization::empty_string_as_none;
-use crate::templates::render;
-use crate::AuthContext;
 use axum::body::Body;
 use axum::extract::Query;
 use axum::http::Request;
@@ -11,6 +6,12 @@ use axum::Form;
 use sailfish::TemplateOnce;
 use serde::Deserialize;
 use tower_request_id::RequestId;
+
+use crate::authn::models::{Credentials, User};
+use crate::database::get_connection;
+use crate::deserialization::empty_string_as_none;
+use crate::templates::render;
+use crate::AuthContext;
 
 use super::models::NewUser;
 use super::repository::create_user;

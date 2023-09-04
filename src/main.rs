@@ -1,6 +1,7 @@
 use std::time::Duration;
 
-use axum::{middleware, routing::get, routing::post, Extension, Router};
+use axum::{middleware, routing::get, routing::post, Extension, Router, ServiceExt};
+use axum_login::axum_sessions::async_session::CookieStore;
 use axum_login::{
     axum_sessions::SessionLayer, AuthLayer, PostgresStore, RequireAuthorizationLayer,
 };
@@ -14,7 +15,6 @@ use tracing::Level;
 use authn::views::login;
 use database::get_pool;
 use http::{route_auth_guard, set_security_headers};
-use session::DatabaseSessionStore;
 
 use crate::authn::models::User;
 use crate::authn::views;
@@ -31,11 +31,13 @@ pub async fn app() -> Router {
     let secret = random::<[u8; 64]>();
     let pool = get_pool().await;
 
-    let session_store = DatabaseSessionStore::new(pool.clone());
+    let session_store = CookieStore::new();
     let session_layer = SessionLayer::new(session_store, &secret)
+        .with_session_ttl(Some(Duration::from_secs(10 * 60)))
         .with_http_only(true)
-        .with_secure(true)
-        .with_session_ttl(Some(Duration::from_secs(10 * 60)));
+        // has to be false for safari on localhost as it doesn't seem to respect
+        // that secure=true should be transmitted for http://localhost
+        .with_secure(false);
 
     let user_store = PostgresStore::<User>::new(pool.clone());
     let auth_layer = AuthLayer::new(user_store, &secret);
