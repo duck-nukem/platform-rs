@@ -1,7 +1,7 @@
 #!/usr/bin/env just --justfile
 
 install_deps:
-    cargo install sqlx-cli
+    cargo install sqlx-cli rust-i18n
 
 run_aux_services:
 	docker compose up -d

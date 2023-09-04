@@ -1,3 +1,6 @@
+#[macro_use]
+extern crate rust_i18n;
+
 use std::time::Duration;
 
 use axum::{middleware, routing::get, routing::post, Extension, Router, ServiceExt};
@@ -26,6 +29,7 @@ mod http;
 mod session;
 mod templates;
 
+i18n!("locales", fallback = "en");
 type AuthContext = axum_login::extractors::AuthContext<i64, User, PostgresStore<User>>;
 pub async fn app() -> Router {
     let secret = random::<[u8; 64]>();

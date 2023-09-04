@@ -17,13 +17,14 @@ in no particular order
       to keep session in a database so they can be invalidated. I'm willing to sacrifice on this as the 3rd party
       package doesn't allow to easily assign users to sessions, making this security feature difficult to implement.
       Mass invalidation of sessions is still possible by changing the secret they're signed with.
-- [ ] i18n in templates
+- [x] i18n in templates
 - [x] route guards (e.g. -> 401 redirect to login)
 - [x] JS Nonce for security -> see GreetingsTemplate / logged_in.html
 - [ ] Abstractions!!
 - [x] Add DB migrations
 - [x] Testing approach
 - [x] env variables
+- [ ] allow locale per view/session?
 - ~~Reload templates without server restart -> handlebars~~
 
 ## Postgres
@@ -38,6 +39,8 @@ in no particular order
 - [ ] ability to refer to routes via variables not magic strings
 - [ ] tie sessions to users in the DB?
 - [ ] pre-commit hooks
+- [ ] better i18n support (extract strings from .html)
+- [ ] establish repository pattern and concentrate SQL queries there
 
 # Performance
 
