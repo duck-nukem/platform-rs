@@ -78,9 +78,9 @@ async fn main() {
         .with_max_level(Level::INFO)
         .init();
 
-    let thread = tokio::spawn(
-        axum::Server::bind(&"0.0.0.0:3000".parse().unwrap()).serve(app().await.into_make_service()),
-    );
     tracing::info!("Ready to accept connections at :3000");
-    let _ = tokio::try_join!(thread);
+    axum::Server::bind(&"0.0.0.0:3000".parse().unwrap())
+        .serve(app().await.into_make_service())
+        .await
+        .unwrap();
 }

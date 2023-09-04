@@ -41,7 +41,6 @@ in no particular order
 
 # Performance
 
-- [ ] Postgres pooling options (around 10k concurrent users they time out). Real problem?
 - ~~[ ] Replace bcrypt with pbkdf2 for speed?~~ it's even slower
 
 ###### 10k users @ 1 thread = ~580mb; avg 3s;
