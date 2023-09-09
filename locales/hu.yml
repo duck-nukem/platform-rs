@@ -1,0 +1,4 @@
+{
+  "_version": 1,
+  "messages.hello": "Szia %{username}! A titkos kódod: %{nonce}"
+}

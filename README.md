@@ -24,7 +24,7 @@ in no particular order
 - [x] Add DB migrations
 - [x] Testing approach
 - [x] env variables
-- [ ] allow locale per view/session?
+- [x] allow locale per ~~view/session~~ user
 - ~~Reload templates without server restart -> handlebars~~
 
 ## Postgres

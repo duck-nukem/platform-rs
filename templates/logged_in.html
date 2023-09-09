@@ -4,9 +4,22 @@
     <? include!("headers.html"); ?>
 </head>
 <body>
+<? rust_i18n::set_locale(user.locale.as_str()); ?>
 <?= t!("messages.hello", username=user.name, nonce=nonce) ?>
-<script>alert("Any script can run :(");</script>
-<script nonce="<?= nonce ?>">alert("CSP works");</script>
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        document.getElementById("inline-script-results-container").innerText = "Yes"
+    });
+</script>
+<script nonce="<?= nonce ?>">
+    document.addEventListener("DOMContentLoaded", () => {
+        document.getElementById("nonce-results-container").innerText = "Yes"
+    });
+</script>
+<ul>
+    <li>Can inline scripts run? <span id="inline-script-results-container">No</span></li>
+    <li>Can nonce-based scripts run? <span id="nonce-results-container">No</span></li>
+</ul>
 <form method="POST" action="/logout">
     <button type="submit">Log out</button>
 </form>

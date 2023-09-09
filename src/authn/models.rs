@@ -13,6 +13,7 @@ pub struct User {
     pub id: i64,
     pub password_hash: String,
     pub name: String,
+    pub locale: String,
 }
 
 impl AuthUser<i64> for User {

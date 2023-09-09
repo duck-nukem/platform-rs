@@ -22,9 +22,11 @@ pub async fn create_user(
     let mut salt: [u8; 16] = Default::default();
     salt.copy_from_slice("1234567890123456".as_bytes()); // TODO: Use app secret
     let password_hash = hash_with_salt(user.raw_password, 12, salt).unwrap();
-    sqlx::query("INSERT INTO users (name, password_hash) VALUES ($1, $2) RETURNING id;")
-        .bind(user.name)
-        .bind(password_hash.to_string())
-        .fetch_optional(connection.as_mut())
-        .await
+    sqlx::query(
+        "INSERT INTO users (name, password_hash, locale) VALUES ($1, $2, 'en') RETURNING id;",
+    )
+    .bind(user.name)
+    .bind(password_hash.to_string())
+    .fetch_optional(connection.as_mut())
+    .await
 }
