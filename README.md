@@ -25,7 +25,6 @@ in no particular order
 - [x] Testing approach
 - [x] env variables
 - [x] allow locale per ~~view/session~~ user
-- ~~Reload templates without server restart -> handlebars~~
 
 ## Postgres
 
@@ -36,24 +35,22 @@ in no particular order
 ## Extras
 
 - [x] test db isolation -> #[sqlx::test]
-- [ ] ability to refer to routes via variables not magic strings
-- [ ] tie sessions to users in the DB?
+- [ ] ability (/pattern?) to refer to routes via variables not magic strings
 - [ ] pre-commit hooks
 - [ ] better i18n support (extract strings from .html)
 - [x] establish repository pattern and concentrate SQL queries there
 - [x] 404 handler
+- [x] "Dev mode" - incremental recompilation on changes for faster prototyping
 
-# Performance
+## Security
 
-- ~~[ ] Replace bcrypt with pbkdf2 for speed?~~ it's even slower
-
-###### 10k users @ 1 thread = ~580mb; avg 3s;
-
-###### 5k users @ 1 thread = ~498mb; avg 3ms;
+- [ ] tie sessions to users in the DB?
+- [ ] csrf token impl
 
 # Project aims
 
 - No javascript (or as minimal as possible)
-- Full SSR
+- Secure!
+- Full SSR, optinally with HTMX
 - Browser native only (alerts, HTML5 elements, etc)
 - Max performance & minimum resource requirements
