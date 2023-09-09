@@ -1,3 +1,6 @@
+use crate::templates::render;
+use crate::ROOT_URL;
+use axum::response::IntoResponse;
 use axum::{
     http::{
         header::{CONTENT_SECURITY_POLICY, LOCATION},
@@ -6,6 +9,7 @@ use axum::{
     middleware::Next,
     response::Response,
 };
+use sailfish::TemplateOnce;
 use tower_request_id::RequestId;
 
 pub async fn route_auth_guard<B>(req: Request<B>, next: Next<B>) -> Result<Response, StatusCode> {
@@ -47,3 +51,11 @@ pub async fn set_security_headers<B>(
 
     Ok(response)
 }
+
+pub async fn handler_404() -> impl IntoResponse {
+    (StatusCode::NOT_FOUND, render(NotFoundTemplate {}))
+}
+
+#[derive(TemplateOnce)]
+#[template(path = "404.html")]
+pub struct NotFoundTemplate {}

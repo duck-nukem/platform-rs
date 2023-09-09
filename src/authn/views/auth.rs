@@ -1,16 +1,16 @@
 use axum::extract::Query;
-use axum::response::{IntoResponse, Redirect};
+use axum::response::{IntoResponse, Redirect, Response};
 use axum::Form;
 use bcrypt::verify;
 use sailfish::TemplateOnce;
+use serde::Deserialize;
 
 use crate::authn::models::Credentials;
 use crate::authn::repository::find_by_username;
-use crate::authn::views::Params;
 use crate::database::get_connection;
+use crate::deserialization::empty_string_as_none;
 use crate::templates::render;
 use crate::AuthContext;
-
 pub async fn login_view(Query(params): Query<Params>) -> impl IntoResponse {
     render(LoginTemplate {
         message: params.message.unwrap_or("".parse().unwrap()),
@@ -133,4 +133,15 @@ mod tests {
 
         assert_eq!(response.header("Location"), "/greet")
     }
+}
+
+#[derive(Deserialize)]
+pub struct Params {
+    #[serde(default, deserialize_with = "empty_string_as_none")]
+    message: Option<String>,
+}
+
+pub async fn logout_handler(mut auth: AuthContext) -> Response {
+    auth.logout().await;
+    Redirect::to("/login?message=logout").into_response()
 }

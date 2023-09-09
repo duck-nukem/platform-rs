@@ -3,7 +3,7 @@ extern crate rust_i18n;
 
 use std::time::Duration;
 
-use axum::{middleware, routing::get, routing::post, Extension, Router, ServiceExt};
+use axum::{middleware, routing::get, routing::post, Extension, Router};
 use axum_login::axum_sessions::async_session::CookieStore;
 use axum_login::{
     axum_sessions::SessionLayer, AuthLayer, PostgresStore, RequireAuthorizationLayer,
@@ -15,12 +15,13 @@ use tower_http::trace::TraceLayer;
 use tower_request_id::RequestIdLayer;
 use tracing::Level;
 
-use authn::views::login;
 use database::get_pool;
 use http::{route_auth_guard, set_security_headers};
 
 use crate::authn::models::User;
 use crate::authn::views;
+use crate::authn::views::{auth, signup};
+use crate::http::handler_404;
 
 mod authn;
 mod database;
@@ -29,8 +30,11 @@ mod http;
 mod session;
 mod templates;
 
+const ROOT_URL: &str = "/login";
+
 i18n!("locales", fallback = "en");
 type AuthContext = axum_login::extractors::AuthContext<i64, User, PostgresStore<User>>;
+
 pub async fn app() -> Router {
     let secret = random::<[u8; 64]>();
     let pool = get_pool().await;
@@ -57,19 +61,20 @@ pub async fn app() -> Router {
         // ⬆️ authenticated views go above
         .route_layer(RequireAuthorizationLayer::<i64, User>::login())
         // ⬇️ public views go below
-        .route("/login", get(login::login_view))
-        .route("/login", post(login::login_handler))
-        .route("/logout", post(views::logout_handler))
-        .route("/signup", get(views::signup_view))
-        .route("/signup", post(views::signup_handler))
-        .route_layer(middleware::from_fn(route_auth_guard))
+        .route("/login", get(auth::login_view))
+        .route("/login", post(auth::login_handler))
+        .route("/logout", post(auth::logout_handler))
+        .route("/signup", get(signup::signup_view))
+        .route("/signup", post(signup::signup_handler))
         .route_layer(middleware::from_fn(set_security_headers))
+        .route_layer(middleware::from_fn(route_auth_guard))
         .layer(auth_layer)
         .layer(session_layer)
         .layer(trace_layer)
         .layer(Extension(pool.clone()))
         .layer(RequestIdLayer)
         .layer(tower_http::compression::CompressionLayer::new())
+        .fallback(handler_404)
 }
 
 #[tokio::main]

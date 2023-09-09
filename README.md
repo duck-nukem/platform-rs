@@ -20,7 +20,7 @@ in no particular order
 - [x] i18n in templates
 - [x] route guards (e.g. -> 401 redirect to login)
 - [x] JS Nonce for security -> see GreetingsTemplate / logged_in.html
-- [ ] Abstractions!!
+- [x] Abstractions!!
 - [x] Add DB migrations
 - [x] Testing approach
 - [x] env variables
@@ -40,7 +40,8 @@ in no particular order
 - [ ] tie sessions to users in the DB?
 - [ ] pre-commit hooks
 - [ ] better i18n support (extract strings from .html)
-- [ ] establish repository pattern and concentrate SQL queries there
+- [x] establish repository pattern and concentrate SQL queries there
+- [x] 404 handler
 
 # Performance
 
