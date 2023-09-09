@@ -1,5 +1,4 @@
 use crate::templates::render;
-use crate::ROOT_URL;
 use axum::response::IntoResponse;
 use axum::{
     http::{

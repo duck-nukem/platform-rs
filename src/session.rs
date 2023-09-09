@@ -16,7 +16,7 @@ pub(crate) struct DatabaseSessionStore {
 }
 
 impl DatabaseSessionStore {
-    pub(crate) fn new(pool: Pool<Postgres>) -> Self {
+    pub(crate) fn _new(pool: Pool<Postgres>) -> Self {
         Self { pool }
     }
 }

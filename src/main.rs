@@ -30,8 +30,6 @@ mod http;
 mod session;
 mod templates;
 
-const ROOT_URL: &str = "/login";
-
 i18n!("locales", fallback = "en");
 type AuthContext = axum_login::extractors::AuthContext<i64, User, PostgresStore<User>>;
 
