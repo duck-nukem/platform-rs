@@ -3,20 +3,23 @@ use std::env;
 use bcrypt::hash_with_salt;
 use sqlx::postgres::PgRow;
 use sqlx::Error;
+use tracing::instrument;
 
 use crate::authn::models::{NewUser, User};
 use crate::database::DatabaseConnection;
 
+#[instrument]
 pub async fn find_by_username(
     mut connection: DatabaseConnection,
     username: &str,
 ) -> Result<User, Error> {
-    sqlx::query_as("select * from users where name = $1;")
+    sqlx::query_as("SELECT * FROM users WHERE name = $1 LIMIT 1;")
         .bind(username)
         .fetch_one(connection.as_mut())
         .await
 }
 
+#[instrument]
 pub async fn create_user(
     mut connection: DatabaseConnection,
     user: NewUser,

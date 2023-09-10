@@ -1,9 +1,10 @@
 use axum::extract::Query;
-use axum::response::{IntoResponse, Redirect, Response};
+use axum::response::{Html, IntoResponse, Redirect, Response};
 use axum::Form;
 use bcrypt::verify;
 use sailfish::TemplateOnce;
 use serde::Deserialize;
+use tracing::instrument;
 
 use crate::authn::models::Credentials;
 use crate::authn::repository::find_by_username;
@@ -11,12 +12,15 @@ use crate::database::get_connection;
 use crate::deserialization::empty_string_as_none;
 use crate::templates::render;
 use crate::AuthContext;
-pub async fn login_view(Query(params): Query<Params>) -> impl IntoResponse {
+
+#[instrument]
+pub async fn login_view(Query(params): Query<Params>) -> Html<String> {
     render(LoginTemplate {
         message: params.message.unwrap_or("".parse().unwrap()),
     })
 }
 
+#[instrument]
 pub async fn login_handler(
     mut auth: AuthContext,
     Form(login): Form<Credentials>,
@@ -135,7 +139,7 @@ mod tests {
     }
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 pub struct Params {
     #[serde(default, deserialize_with = "empty_string_as_none")]
     message: Option<String>,

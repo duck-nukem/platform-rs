@@ -9,10 +9,12 @@ use axum_login::{
     axum_sessions::SessionLayer, AuthLayer, PostgresStore, RequireAuthorizationLayer,
 };
 use dotenv::dotenv;
-use tower_http::trace;
 use tower_http::trace::TraceLayer;
 use tower_request_id::RequestIdLayer;
 use tracing::Level;
+use tracing_subscriber::filter::LevelFilter;
+use tracing_subscriber::layer::SubscriberExt;
+use tracing_subscriber::util::SubscriberInitExt;
 
 use database::get_pool;
 use http::{route_auth_guard, set_security_headers};
@@ -57,11 +59,19 @@ pub async fn app() -> Router {
     let user_store = PostgresStore::<User>::new(pool.clone());
     let auth_layer = AuthLayer::new(user_store, &secret);
 
-    let log_level = Level::INFO;
+    let tracer = opentelemetry_jaeger::new_agent_pipeline()
+        .with_service_name("platform-rs")
+        .install_simple()
+        .expect("Telemetry Agent setup failed");
     let trace_layer = TraceLayer::new_for_http()
-        .on_request(trace::DefaultOnRequest::new().level(log_level))
-        .make_span_with(trace::DefaultMakeSpan::new().level(log_level))
-        .on_response(trace::DefaultOnResponse::new().level(log_level));
+        .on_request(tower_http::trace::DefaultOnRequest::new().level(Level::INFO))
+        .make_span_with(tower_http::trace::DefaultMakeSpan::new().level(Level::INFO))
+        .on_response(tower_http::trace::DefaultOnResponse::new().level(Level::INFO));
+    tracing_subscriber::registry()
+        .with(LevelFilter::INFO)
+        .with(tracing_opentelemetry::layer().with_tracer(tracer))
+        .try_init()
+        .expect("Failed to register tracer with registry");
 
     Router::new()
         .route("/greet", get(views::logged_in_view))
@@ -88,15 +98,11 @@ pub async fn app() -> Router {
 async fn main() {
     dotenv().ok();
 
-    tracing_subscriber::fmt()
-        .with_target(false)
-        .compact()
-        .with_max_level(Level::INFO)
-        .init();
-
     tracing::info!("Ready to accept connections at :3000");
     axum::Server::bind(&"0.0.0.0:3000".parse().unwrap())
         .serve(app().await.into_make_service())
         .await
         .unwrap();
+
+    opentelemetry::global::shutdown_tracer_provider();
 }

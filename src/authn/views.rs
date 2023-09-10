@@ -1,8 +1,9 @@
 use axum::body::Body;
 use axum::http::Request;
-use axum::response::IntoResponse;
+use axum::response::Html;
 use sailfish::TemplateOnce;
 use tower_request_id::RequestId;
+use tracing::instrument;
 
 use crate::authn::models::User;
 use crate::templates::render;
@@ -11,7 +12,8 @@ use crate::AuthContext;
 pub mod auth;
 pub mod signup;
 
-pub async fn logged_in_view(auth: AuthContext, req: Request<Body>) -> impl IntoResponse {
+#[instrument]
+pub async fn logged_in_view(auth: AuthContext, req: Request<Body>) -> Html<String> {
     let request_id = &*req
         .extensions()
         .get::<RequestId>()

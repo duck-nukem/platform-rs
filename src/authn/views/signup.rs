@@ -2,14 +2,17 @@ use crate::authn::models::{Credentials, NewUser};
 use crate::authn::repository::create_user;
 use crate::database::get_connection;
 use crate::templates::render;
-use axum::response::{IntoResponse, Redirect};
+use axum::response::{Html, IntoResponse, Redirect};
 use axum::Form;
 use sailfish::TemplateOnce;
+use tracing::instrument;
 
-pub async fn signup_view() -> impl IntoResponse {
+#[instrument]
+pub async fn signup_view() -> Html<String> {
     render(SignupTemplate {})
 }
 
+#[instrument]
 pub async fn signup_handler(Form(signup): Form<Credentials>) -> impl IntoResponse {
     let created_user = create_user(
         get_connection().await,

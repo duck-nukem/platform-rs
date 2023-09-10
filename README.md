@@ -24,7 +24,7 @@ in no particular order
 
 ## Postgres
 
-- [ ] Performance monitoring (CPU/Mem/DB - maybe Docker + Grafana?)
+- [x] Performance monitoring (CPU/Mem/DB - maybe Docker + Grafana?)
 - [x] Postgres?
 - [x] Create sqlite db in GitHub actions (maybe Docker + Postgres?)
 
@@ -46,6 +46,7 @@ in no particular order
     - postponed because the 3rd party library makes it borderline impossible to do this (without reimplementing it)
 - [ ] csrf token impl
 - [x] secrets from envvars
+- [ ] create random nonces (!= request.id)?
 
 # Project aims
 
