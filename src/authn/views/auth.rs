@@ -1,14 +1,14 @@
 use axum::extract::Query;
 use axum::response::{Html, IntoResponse, Redirect, Response};
-use axum::Form;
+use axum::{Extension, Form};
 use bcrypt::verify;
 use sailfish::TemplateOnce;
 use serde::Deserialize;
+use sqlx::PgPool;
 use tracing::instrument;
 
 use crate::authn::models::Credentials;
 use crate::authn::repository::find_by_username;
-use crate::database::get_connection;
 use crate::deserialization::empty_string_as_none;
 use crate::templates::render;
 use crate::AuthContext;
@@ -23,9 +23,11 @@ pub async fn login_view(Query(params): Query<Params>) -> Html<String> {
 #[instrument]
 pub async fn login_handler(
     mut auth: AuthContext,
+    Extension(pool): Extension<PgPool>,
     Form(login): Form<Credentials>,
 ) -> impl IntoResponse {
-    let user_query = find_by_username(get_connection().await, login.username.as_str()).await;
+    let connection = pool.acquire().await.unwrap();
+    let user_query = find_by_username(connection, login.username.as_str()).await;
     let user = match user_query {
         Ok(found_user) => found_user,
         Err(_) => {

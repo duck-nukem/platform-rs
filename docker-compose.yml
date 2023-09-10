@@ -28,7 +28,7 @@ services:
       - "14269:14269"
       - "9411:9411"
     environment:
-      - LOG_LEVEL=debug
+      - LOG_LEVEL=info
 
 volumes:
   postgres_data:

@@ -2,21 +2,28 @@ use std::env;
 
 use dotenv::dotenv;
 use sqlx::pool::PoolConnection;
+use sqlx::postgres::PgPoolOptions;
 use sqlx::{PgPool, Postgres};
 
 pub type DatabaseConnection = PoolConnection<Postgres>;
 
+/// Try to be mindful of the usage.
+/// Usually you'd want Extension(pool): Extension<PgPool>
+/// in views/handlers.
+///
+/// If this is used in too many places (more than 1?) then
+/// pooling won't work properly and postgres will run out
+/// of connections to give.
+///
 pub async fn get_pool() -> PgPool {
     dotenv().ok();
 
-    PgPool::connect_lazy(
-        env::var("DATABASE_URL")
-            .expect("DATABASE_URL envvar is undefined, can't connect to DB!")
-            .as_str(),
-    )
-    .expect("Can't connect to the Database!")
-}
-
-pub async fn get_connection() -> DatabaseConnection {
-    get_pool().await.acquire().await.unwrap()
+    PgPoolOptions::new()
+        .max_connections(90)
+        .connect_lazy(
+            env::var("DATABASE_URL")
+                .expect("DATABASE_URL envvar is undefined, can't connect to DB!")
+                .as_str(),
+        )
+        .expect("Can't connect to the Database!")
 }

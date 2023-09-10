@@ -28,3 +28,9 @@ struct MyModel {
 If you do a query  `SELECT id FROM users` it won't have `language` thus won't be able to serialize this object.
 
 The same applies if `language` is `NULL` in the DB, but your struct isn't an `Option<String>`!
+
+### Pooling
+
+Try to use `Extension(pool): Extension<PgPool>` in views/handlers rather than creating a connection
+every time you need one (via `get_pool()`). Manually creating multiple connections can result in
+postgres running out of pool connections to handle, making the app fail.

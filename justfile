@@ -21,3 +21,6 @@ test: run_aux_services migrate
 
 reset_db:
 	docker compose down --volumes
+
+get_auth_cookie:
+    @curl -si 'http://localhost:3000/login' -X POST -H 'Content-Type: application/x-www-form-urlencoded' --data-raw 'username=admin&password=pass' | grep -o "sid=[^;]*"
