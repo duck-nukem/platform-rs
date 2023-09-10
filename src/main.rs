@@ -1,10 +1,10 @@
 #[macro_use]
 extern crate rust_i18n;
 
+use std::env;
 use std::time::Duration;
 
 use axum::{middleware, routing::get, routing::post, Extension, Router};
-use axum_login::axum_sessions::async_session::CookieStore;
 use axum_login::{
     axum_sessions::SessionLayer, AuthLayer, PostgresStore, RequireAuthorizationLayer,
 };
@@ -22,6 +22,7 @@ use crate::authn::models::User;
 use crate::authn::views;
 use crate::authn::views::{auth, signup};
 use crate::http::handler_404;
+use crate::session::DatabaseSessionStore;
 
 mod authn;
 mod database;
@@ -37,13 +38,16 @@ pub async fn app() -> Router {
     let secret = random::<[u8; 64]>();
     let pool = get_pool().await;
 
-    let session_store = CookieStore::new();
+    let session_store = DatabaseSessionStore::new(pool.clone());
     let session_layer = SessionLayer::new(session_store, &secret)
         .with_session_ttl(Some(Duration::from_secs(10 * 60)))
         .with_http_only(true)
-        // has to be false for safari on localhost as it doesn't seem to respect
-        // that secure=true should be transmitted for http://localhost
-        .with_secure(false);
+        .with_secure(
+            env::var("SECURE_COOKIE")
+                .unwrap_or("true".to_string())
+                .to_ascii_lowercase()
+                .eq("true"),
+        );
 
     let user_store = PostgresStore::<User>::new(pool.clone());
     let auth_layer = AuthLayer::new(user_store, &secret);

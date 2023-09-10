@@ -40,7 +40,7 @@ pub async fn set_security_headers<B>(
     let mut response = next.run(req).await;
     let header_value = format!(
         "object-src 'none'; base-uri 'none'; script-src 'nonce-{}'",
-        request_id.to_string()
+        request_id
     )
     .to_owned();
     response.headers_mut().insert(

@@ -1,10 +1,10 @@
 use crate::authn::models::{Credentials, NewUser};
+use crate::authn::repository::create_user;
 use crate::database::get_connection;
 use crate::templates::render;
 use axum::response::{IntoResponse, Redirect};
 use axum::Form;
 use sailfish::TemplateOnce;
-use crate::authn::repository::create_user;
 
 pub async fn signup_view() -> impl IntoResponse {
     render(SignupTemplate {})

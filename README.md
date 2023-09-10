@@ -13,10 +13,6 @@ in no particular order
 ## Core
 
 - [x] Production-like sessions (redis/db)
-    - Implemented in [src/session.rs](src/session.rs) but unused - `CookieStore` is used instead. It's a best practice
-      to keep session in a database so they can be invalidated. I'm willing to sacrifice on this as the 3rd party
-      package doesn't allow to easily assign users to sessions, making this security feature difficult to implement.
-      Mass invalidation of sessions is still possible by changing the secret they're signed with.
 - [x] i18n in templates
 - [x] route guards (e.g. -> 401 redirect to login)
 - [x] JS Nonce for security -> see GreetingsTemplate / logged_in.html
@@ -36,15 +32,18 @@ in no particular order
 
 - [x] test db isolation -> #[sqlx::test]
 - [ ] ability (/pattern?) to refer to routes via variables not magic strings
-- [ ] pre-commit hooks
+- [x] pre-commit hooks
 - [ ] better i18n support (extract strings from .html)
 - [x] establish repository pattern and concentrate SQL queries there
 - [x] 404 handler
 - [x] "Dev mode" - incremental recompilation on changes for faster prototyping
+- [ ] admin-like screens for managing entities?
 
 ## Security
 
 - [ ] tie sessions to users in the DB?
+    - limited use-case: invalidating all tokens for a given user
+    - postponed because the 3rd party library makes it borderline impossible to do this (without reimplementing it)
 - [ ] csrf token impl
 
 # Project aims
