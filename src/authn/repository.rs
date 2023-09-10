@@ -1,3 +1,5 @@
+use std::env;
+
 use bcrypt::hash_with_salt;
 use sqlx::postgres::PgRow;
 use sqlx::Error;
@@ -20,8 +22,12 @@ pub async fn create_user(
     user: NewUser,
 ) -> Result<Option<PgRow>, Error> {
     let mut salt: [u8; 16] = Default::default();
-    salt.copy_from_slice("1234567890123456".as_bytes()); // TODO: Use app secret
-    let password_hash = hash_with_salt(user.raw_password, 12, salt).unwrap();
+    salt.copy_from_slice(
+        env::var("PASSWORD_SALT")
+            .expect("Password Salt is either undefined or not 16 chars long!")
+            .as_bytes(),
+    );
+    let password_hash = hash_with_salt(user.raw_password, 10, salt).unwrap();
     sqlx::query(
         "INSERT INTO users (name, password_hash, locale) VALUES ($1, $2, 'en') RETURNING id;",
     )

@@ -36,7 +36,7 @@ in no particular order
 - [ ] better i18n support (extract strings from .html)
 - [x] establish repository pattern and concentrate SQL queries there
 - [x] 404 handler
-- [x] "Dev mode" - incremental recompilation on changes for faster prototyping
+- [ ] "Dev mode" - incremental recompilation on changes for faster prototyping
 - [ ] admin-like screens for managing entities?
 
 ## Security
@@ -45,6 +45,7 @@ in no particular order
     - limited use-case: invalidating all tokens for a given user
     - postponed because the 3rd party library makes it borderline impossible to do this (without reimplementing it)
 - [ ] csrf token impl
+- [x] secrets from envvars
 
 # Project aims
 

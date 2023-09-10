@@ -9,7 +9,6 @@ use axum_login::{
     axum_sessions::SessionLayer, AuthLayer, PostgresStore, RequireAuthorizationLayer,
 };
 use dotenv::dotenv;
-use rand::random;
 use tower_http::trace;
 use tower_http::trace::TraceLayer;
 use tower_request_id::RequestIdLayer;
@@ -35,7 +34,13 @@ i18n!("locales", fallback = "en");
 type AuthContext = axum_login::extractors::AuthContext<i64, User, PostgresStore<User>>;
 
 pub async fn app() -> Router {
-    let secret = random::<[u8; 64]>();
+    let mut secret: [u8; 64] = [0; 64];
+    secret.copy_from_slice(
+        env::var("APP_SECRET")
+            .expect("App Secret is either undefined or not exactly 64 char long!")
+            .as_bytes(),
+    );
+
     let pool = get_pool().await;
 
     let session_store = DatabaseSessionStore::new(pool.clone());
