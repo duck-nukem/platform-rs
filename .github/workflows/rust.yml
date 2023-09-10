@@ -17,6 +17,7 @@ jobs:
     steps:
     - uses: extractions/setup-just@v1
     - uses: actions/checkout@v3
+    - uses: Swatinem/rust-cache@v2
     - name: Setup
       run: just install_deps
     - name: Build
