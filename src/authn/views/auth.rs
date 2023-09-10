@@ -71,11 +71,11 @@ struct LoginTemplate {
 #[cfg(test)]
 mod tests {
     use axum_test::TestServer;
+    use sqlx::PgPool;
 
     use crate::app;
     use crate::authn::models::{Credentials, NewUser};
     use crate::authn::repository::create_user;
-    use crate::database::get_connection;
 
     #[tokio::test]
     async fn test_login_handler_should_redirect_if_user_is_not_found() {
@@ -92,10 +92,10 @@ mod tests {
         assert_eq!(response.header("Location"), "/login?message=invalid")
     }
 
-    #[tokio::test]
-    async fn test_login_handler_should_redirect_if_password_is_invalid() {
+    #[sqlx::test]
+    async fn test_login_handler_should_redirect_if_password_is_invalid(pool: PgPool) {
         create_user(
-            get_connection().await,
+            pool.acquire().await.unwrap(),
             NewUser {
                 name: "user".into(),
                 raw_password: "password".into(),
@@ -116,10 +116,10 @@ mod tests {
         assert_eq!(response.header("Location"), "/login?message=invalid")
     }
 
-    #[tokio::test]
-    async fn test_login_handler_should_redirect_if_credentials_are_valid() {
+    #[sqlx::test]
+    async fn test_login_handler_should_redirect_if_credentials_are_valid(pool: PgPool) {
         create_user(
-            get_connection().await,
+            pool.acquire().await.unwrap(),
             NewUser {
                 name: "valid_user".into(),
                 raw_password: "password".into(),
