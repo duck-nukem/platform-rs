@@ -91,10 +91,11 @@ pub async fn app() -> Router {
         .layer(Extension(pool.clone()))
         .layer(RequestIdLayer)
         .layer(tower_http::compression::CompressionLayer::new())
+        .layer(tower::ServiceBuilder::new().concurrency_limit(32))
         .fallback(handler_404)
 }
 
-#[tokio::main]
+#[tokio::main(flavor = "multi_thread")]
 async fn main() {
     dotenv().ok();
 

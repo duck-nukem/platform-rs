@@ -7,8 +7,15 @@ run_aux_services:
 	docker compose up -d
 	@sleep 1
 
-run: run_aux_services
+run: run_aux_services migrate
     cargo run --color=always --package platform-rs --bin platform-rs
+
+build_prod:
+	cargo build --bin platform-rs --release
+
+run_prod: build_prod run_aux_services migrate
+	./target/release/platform-rs
+
 
 make_migration *ARGS:
     sqlx migrate add {{ ARGS }}

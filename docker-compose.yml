@@ -4,6 +4,7 @@ services:
     image: postgres:alpine
     environment:
       POSTGRES_PASSWORD: "password"
+      PGOPTIONS: "-c max_files_per_process=200"
     ports:
       - "5432:5432"
     volumes:
