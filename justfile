@@ -4,8 +4,7 @@ install_deps:
     cargo install sqlx-cli rust-i18n
 
 run_aux_services:
-	docker compose up -d
-	@echo "Waiting 5 seconds for DB connection to be stable" && sleep 5
+	docker compose up -d --wait
 
 run: run_aux_services migrate
     cargo run --color=always --package platform-rs --bin platform-rs
@@ -23,7 +22,7 @@ make_migration *ARGS:
 migrate: run_aux_services
     sqlx migrate run --database-url postgresql://postgres:password@localhost:5432/postgres
 
-test: run_aux_services migrate
+test: migrate
     cargo test --bin platform-rs
 
 reset_db:
