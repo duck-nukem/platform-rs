@@ -77,9 +77,9 @@ mod tests {
     use crate::authn::models::{Credentials, NewUser};
     use crate::authn::repository::create_user;
 
-    #[tokio::test]
-    async fn test_login_handler_should_redirect_if_user_is_not_found() {
-        let server = TestServer::new(app().await.into_make_service()).unwrap();
+    #[sqlx::test]
+    async fn test_login_handler_should_redirect_if_user_is_not_found(pool: PgPool) {
+        let server = TestServer::new(app(pool.clone(), false).await.into_make_service()).unwrap();
 
         let response = server
             .post("/login")
@@ -103,7 +103,7 @@ mod tests {
         )
         .await
         .unwrap();
-        let server = TestServer::new(app().await.into_make_service()).unwrap();
+        let server = TestServer::new(app(pool.clone(), false).await.into_make_service()).unwrap();
 
         let response = server
             .post("/login")
@@ -127,7 +127,7 @@ mod tests {
         )
         .await
         .unwrap();
-        let server = TestServer::new(app().await.into_make_service()).unwrap();
+        let server = TestServer::new(app(pool.clone(), false).await.into_make_service()).unwrap();
 
         let response = server
             .post("/login")
