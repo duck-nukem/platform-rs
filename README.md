@@ -31,22 +31,19 @@ in no particular order
 ## Extras
 
 - [x] test db isolation -> #[sqlx::test]
-- [ ] ability (/pattern?) to refer to routes via variables not magic strings
 - [x] pre-commit hooks
-- [ ] better i18n support (extract strings from .html)
 - [x] establish repository pattern and concentrate SQL queries there
 - [x] 404 handler
+- [ ] find an alternative auth mechanism that doesn't need DB storage
+- [ ] better i18n support (extract strings from .html)
 - [ ] "Dev mode" - incremental recompilation on changes for faster prototyping
+- [ ] ability (/pattern?) to refer to routes via variables not magic strings
 - [ ] admin-like screens for managing entities?
 
 ## Security
 
-- [ ] tie sessions to users in the DB?
-    - limited use-case: invalidating all tokens for a given user
-    - postponed because the 3rd party library makes it borderline impossible to do this (without reimplementing it)
 - [ ] csrf token impl
 - [x] secrets from envvars
-- [ ] create random nonces (!= request.id)?
 
 # Project aims
 
@@ -55,3 +52,8 @@ in no particular order
 - Full SSR, optinally with HTMX
 - Browser native only (alerts, HTML5 elements, etc)
 - Max performance & minimum resource requirements
+
+Last recorded performance: 
+
+* ~1k rps with sessions in postgres 
+* ~6k rps with only cookie-based sessions
