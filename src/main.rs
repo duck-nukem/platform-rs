@@ -68,9 +68,9 @@ pub async fn app(pool: PgPool, with_tracing: bool) -> Router {
 
     let mut router = Router::new()
         .route("/greet", get(views::logged_in_view))
-        // ⬆️ authenticated views go above
+        // ↑ authenticated views go above
         .route_layer(RequireAuthorizationLayer::<i64, User>::login())
-        // ⬇️ public views go below
+        // ↓ public views go below
         .route("/login", get(auth::login_view))
         .route("/login", post(auth::login_handler))
         .route("/logout", post(auth::logout_handler))
