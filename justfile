@@ -1,20 +1,19 @@
 #!/usr/bin/env just --justfile
 
 install_deps:
-    cargo install sqlx-cli rust-i18n
+    cargo install sqlx-cli rust-i18n cargo-watch
 
 run_aux_services:
 	docker compose up -d --wait
 
 run: run_aux_services migrate
-    cargo run --color=always --package platform-rs --bin platform-rs
+    cargo watch -x run
 
 build_prod:
 	cargo build --bin platform-rs --release
 
 run_prod: build_prod run_aux_services migrate
 	./target/release/platform-rs
-
 
 make_migration *ARGS:
     sqlx migrate add {{ ARGS }}
