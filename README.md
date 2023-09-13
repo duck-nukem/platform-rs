@@ -17,4 +17,4 @@ https://cheatography.com/linux-china/cheat-sheets/justfile/
 Last recorded performance: 
 
 * ~1k rps with sessions in postgres 
-* ~6k rps with only cookie-based sessions
+* ~15k rps with only cookie-based sessions
