@@ -5,11 +5,12 @@ use std::env;
 use std::time::Duration;
 
 use axum::{middleware, routing::get, routing::post, Extension, Router};
-use axum_login::axum_sessions::SameSite;
+use axum_login::axum_sessions::{PersistencePolicy, SameSite};
 use axum_login::{
     axum_sessions::SessionLayer, AuthLayer, PostgresStore, RequireAuthorizationLayer,
 };
 use dotenv::dotenv;
+use session::CookieStore;
 use sqlx::PgPool;
 use tower_http::trace::TraceLayer;
 use tower_request_id::RequestIdLayer;
@@ -25,7 +26,6 @@ use crate::authn::models::User;
 use crate::authn::views;
 use crate::authn::views::{auth, signup};
 use crate::http::handler_404;
-use crate::session::DatabaseSessionStore;
 
 mod authn;
 mod database;
@@ -45,9 +45,15 @@ pub async fn app(pool: PgPool, with_tracing: bool) -> Router {
             .as_bytes(),
     );
 
-    let session_store = DatabaseSessionStore::new(pool.clone());
+    let session_duration_minutes = env::var("SESSION_LIFETIME_MINUTES")
+        .unwrap_or("10".to_string())
+        .parse::<u64>()
+        .expect("Invalid session lifetime; can't convert to numeric value");
+
+    let session_store = CookieStore::new();
     let session_layer = SessionLayer::new(session_store, &secret)
-        .with_session_ttl(Some(Duration::from_secs(10 * 60)))
+        .with_persistence_policy(PersistencePolicy::ExistingOnly)
+        .with_session_ttl(Some(Duration::from_secs(session_duration_minutes * 60)))
         .with_same_site_policy(SameSite::Strict)
         .with_http_only(true)
         .with_secure(
