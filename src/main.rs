@@ -5,6 +5,7 @@ use std::env;
 use std::time::Duration;
 
 use axum::{middleware, routing::get, routing::post, Extension, Router};
+use axum_login::axum_sessions::SameSite;
 use axum_login::{
     axum_sessions::SessionLayer, AuthLayer, PostgresStore, RequireAuthorizationLayer,
 };
@@ -47,6 +48,7 @@ pub async fn app(pool: PgPool, with_tracing: bool) -> Router {
     let session_store = DatabaseSessionStore::new(pool.clone());
     let session_layer = SessionLayer::new(session_store, &secret)
         .with_session_ttl(Some(Duration::from_secs(10 * 60)))
+        .with_same_site_policy(SameSite::Strict)
         .with_http_only(true)
         .with_secure(
             env::var("SECURE_COOKIE")
