@@ -80,11 +80,14 @@ pub async fn app(pool: PgPool, with_tracing: Tracing) -> Router {
         // ↑ authenticated views go above
         .route_layer(RequireAuthorizationLayer::<i64, User>::login())
         // ↓ public views go below
-        .route("/login", get(auth::login_view))
-        .route("/login", post(auth::login_handler))
+        .route("/login", get(auth::login_view).post(auth::login_handler))
         .route("/logout", post(auth::logout_handler))
-        .route("/signup", get(signup::signup_view))
-        .route("/signup", post(signup::signup_handler))
+        .route(
+            "/signup",
+            get(signup::signup_view).post(signup::signup_handler),
+        )
+        // ↑ views
+        // ↓ middlewares & layers
         .route_layer(middleware::from_fn(set_security_headers))
         .route_layer(middleware::from_fn(route_auth_guard))
         .layer(auth_layer)
