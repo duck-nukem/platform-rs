@@ -62,6 +62,17 @@ pub async fn login_handler(
     }
 }
 
+pub async fn logout_handler(mut auth: AuthContext) -> Response {
+    auth.logout().await;
+    Redirect::to("/login?message=logout").into_response()
+}
+
+#[derive(Deserialize, Debug)]
+pub struct Params {
+    #[serde(default, deserialize_with = "empty_string_as_none")]
+    message: Option<String>,
+}
+
 #[derive(TemplateOnce)]
 #[template(path = "login.html")]
 struct LoginTemplate {
@@ -70,17 +81,15 @@ struct LoginTemplate {
 
 #[cfg(test)]
 mod tests {
-    use axum_test::TestServer;
     use sqlx::PgPool;
 
-    use crate::app;
     use crate::authn::models::{Credentials, NewUser};
     use crate::authn::repository::create_user;
+    use crate::tests::make_server;
 
     #[sqlx::test]
     async fn test_login_handler_should_redirect_if_user_is_not_found(pool: PgPool) {
-        let server = TestServer::new(app(pool.clone(), false).await.into_make_service()).unwrap();
-
+        let server = make_server(pool.clone()).await;
         let response = server
             .post("/login")
             .form(&Credentials {
@@ -103,7 +112,7 @@ mod tests {
         )
         .await
         .unwrap();
-        let server = TestServer::new(app(pool.clone(), false).await.into_make_service()).unwrap();
+        let server = make_server(pool.clone()).await;
 
         let response = server
             .post("/login")
@@ -127,7 +136,7 @@ mod tests {
         )
         .await
         .unwrap();
-        let server = TestServer::new(app(pool.clone(), false).await.into_make_service()).unwrap();
+        let server = make_server(pool.clone()).await;
 
         let response = server
             .post("/login")
@@ -139,15 +148,4 @@ mod tests {
 
         assert_eq!(response.header("Location"), "/greet")
     }
-}
-
-#[derive(Deserialize, Debug)]
-pub struct Params {
-    #[serde(default, deserialize_with = "empty_string_as_none")]
-    message: Option<String>,
-}
-
-pub async fn logout_handler(mut auth: AuthContext) -> Response {
-    auth.logout().await;
-    Redirect::to("/login?message=logout").into_response()
 }

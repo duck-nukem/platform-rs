@@ -45,3 +45,9 @@ mod tests {
 }
 ```
 
+A test function can be found in `src/tests.rs` called `make_server` that can
+substitute most of the code for instantiating a test server:
+
+```rust
+let server = make_server(pool.clone()).await;
+```

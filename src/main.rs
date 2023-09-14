@@ -34,10 +34,19 @@ mod http;
 mod session;
 mod templates;
 
+#[cfg(test)]
+mod tests;
+
 i18n!("locales", fallback = "en");
 type AuthContext = axum_login::extractors::AuthContext<i64, User, PostgresStore<User>>;
 
-pub async fn app(pool: PgPool, with_tracing: bool) -> Router {
+#[derive(Clone)]
+pub enum Tracing {
+    Enabled,
+    Disabled,
+}
+
+pub async fn app(pool: PgPool, with_tracing: Tracing) -> Router {
     let mut secret: [u8; 64] = [0; 64];
     secret.copy_from_slice(
         env::var("APP_SECRET")
@@ -86,21 +95,24 @@ pub async fn app(pool: PgPool, with_tracing: bool) -> Router {
         .layer(tower::ServiceBuilder::new().concurrency_limit(32))
         .fallback(handler_404);
 
-    if with_tracing {
-        let tracer = opentelemetry_jaeger::new_agent_pipeline()
-            .with_service_name("platform-rs")
-            .install_simple()
-            .expect("Telemetry Agent setup failed");
-        let trace_layer = TraceLayer::new_for_http()
-            .on_request(tower_http::trace::DefaultOnRequest::new().level(Level::INFO))
-            .make_span_with(tower_http::trace::DefaultMakeSpan::new().level(Level::INFO))
-            .on_response(tower_http::trace::DefaultOnResponse::new().level(Level::INFO));
-        tracing_subscriber::registry()
-            .with(LevelFilter::INFO)
-            .with(tracing_opentelemetry::layer().with_tracer(tracer))
-            .try_init()
-            .expect("Failed to register tracer with registry");
-        router = router.layer(trace_layer);
+    match with_tracing {
+        Tracing::Enabled => {
+            let tracer = opentelemetry_jaeger::new_agent_pipeline()
+                .with_service_name("platform-rs")
+                .install_simple()
+                .expect("Telemetry Agent setup failed");
+            let trace_layer = TraceLayer::new_for_http()
+                .on_request(tower_http::trace::DefaultOnRequest::new().level(Level::INFO))
+                .make_span_with(tower_http::trace::DefaultMakeSpan::new().level(Level::INFO))
+                .on_response(tower_http::trace::DefaultOnResponse::new().level(Level::INFO));
+            tracing_subscriber::registry()
+                .with(LevelFilter::INFO)
+                .with(tracing_opentelemetry::layer().with_tracer(tracer))
+                .try_init()
+                .expect("Failed to register tracer with registry");
+            router = router.layer(trace_layer);
+        }
+        Tracing::Disabled => (),
     }
 
     router = router.fallback(handler_404);
@@ -116,7 +128,11 @@ async fn main() {
 
     tracing::info!("Ready to accept connections at :3000");
     axum::Server::bind(&"0.0.0.0:3000".parse().unwrap())
-        .serve(app(pool.clone(), true).await.into_make_service())
+        .serve(
+            app(pool.clone(), Tracing::Enabled)
+                .await
+                .into_make_service(),
+        )
         .await
         .unwrap();
 
