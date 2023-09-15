@@ -4,7 +4,7 @@ extern crate rust_i18n;
 use std::env;
 use std::time::Duration;
 
-use axum::{middleware, routing::get, routing::post, Extension, Router};
+use axum::{middleware, routing::get, Extension, Router};
 use axum_login::axum_sessions::{PersistencePolicy, SameSite};
 use axum_login::{
     axum_sessions::SessionLayer, AuthLayer, PostgresStore, RequireAuthorizationLayer,
@@ -24,13 +24,14 @@ use http::{route_auth_guard, set_security_headers};
 
 use crate::authn::models::User;
 use crate::authn::views;
-use crate::authn::views::{auth, signup};
+
 use crate::http::handler_404;
 
 mod authn;
 mod database;
 mod deserialization;
 mod http;
+pub mod routing;
 mod session;
 mod templates;
 
@@ -80,14 +81,7 @@ pub async fn app(pool: PgPool, with_tracing: Tracing) -> Router {
         // ↑ authenticated views go above
         .route_layer(RequireAuthorizationLayer::<i64, User>::login())
         // ↓ public views go below
-        .route("/login", get(auth::login_view).post(auth::login_handler))
-        .route("/logout", post(auth::logout_handler))
-        .route(
-            "/signup",
-            get(signup::signup_view).post(signup::signup_handler),
-        )
-        // ↑ views
-        // ↓ middlewares & layers
+        .nest("/auth", authn::routes())
         .route_layer(middleware::from_fn(set_security_headers))
         .route_layer(middleware::from_fn(route_auth_guard))
         .layer(auth_layer)

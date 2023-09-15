@@ -21,11 +21,11 @@ make_migration *ARGS:
 migrate: run_aux_services
     sqlx migrate run --database-url postgresql://postgres:password@localhost:5432/postgres
 
-test: migrate
-    cargo test --bin platform-rs
+test *ARGS: migrate
+    cargo test --bin platform-rs {{ ARGS }}
 
 reset_db:
 	docker compose down --volumes
 
 get_auth_cookie:
-    @curl -si 'http://localhost:3000/login' -X POST -H 'Content-Type: application/x-www-form-urlencoded' --data-raw 'username=admin&password=pass' | grep -o "sid=[^;]*"
+    @curl -si 'http://localhost:3000/auth/ogin' -X POST -H 'Content-Type: application/x-www-form-urlencoded' --data-raw 'username=admin&password=pass' | grep -o "sid=[^;]*"

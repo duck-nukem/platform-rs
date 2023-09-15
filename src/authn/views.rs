@@ -6,11 +6,25 @@ use tower_request_id::RequestId;
 use tracing::instrument;
 
 use crate::authn::models::User;
+use crate::routing::SerializeableAsUrl;
 use crate::templates::render;
 use crate::AuthContext;
 
 pub mod auth;
 pub mod signup;
+
+#[derive(Clone, Copy, Debug)]
+pub enum LoggedInRoute {
+    Greetings,
+}
+
+impl SerializeableAsUrl for LoggedInRoute {
+    fn as_url(&self) -> &'static str {
+        match self {
+            LoggedInRoute::Greetings => "/greet",
+        }
+    }
+}
 
 #[instrument]
 pub async fn logged_in_view(auth: AuthContext, req: Request<Body>) -> Html<String> {

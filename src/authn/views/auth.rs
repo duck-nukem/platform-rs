@@ -9,9 +9,13 @@ use tracing::instrument;
 
 use crate::authn::models::Credentials;
 use crate::authn::repository::find_by_username;
+use crate::authn::AuthRoute;
 use crate::deserialization::empty_string_as_none;
+use crate::routing::{build_url, Prefix, QueryParams};
 use crate::templates::render;
 use crate::AuthContext;
+
+use super::LoggedInRoute;
 
 #[instrument]
 pub async fn login_view(Query(params): Query<Params>) -> Html<String> {
@@ -41,7 +45,15 @@ pub async fn login_handler(
                 login.password.clone().as_str(),
                 "$2y$10$tfFECZbEbCSq1.xBBK5nrOUWbpR2bQig/5T0/SjuEvpY5Diaonk9u", // "password" with cost 10
             );
-            return Redirect::to("/login?message=invalid").into_response();
+            return Redirect::to(
+                build_url(
+                    Prefix::Nested("auth"),
+                    AuthRoute::Login,
+                    QueryParams::From(vec![("message".to_string(), "invalid".to_string())]),
+                )
+                .as_str(),
+            )
+            .into_response();
         }
     };
 
@@ -53,18 +65,45 @@ pub async fn login_handler(
         Ok(is_valid_password_for_user) => {
             if is_valid_password_for_user {
                 auth.login(&user).await.unwrap();
-                Redirect::to("/greet").into_response()
+                Redirect::to(
+                    build_url(Prefix::Root, LoggedInRoute::Greetings, QueryParams::None).as_str(),
+                )
+                .into_response()
             } else {
-                Redirect::to("/login?message=invalid").into_response()
+                Redirect::to(
+                    build_url(
+                        Prefix::Nested("auth"),
+                        AuthRoute::Login,
+                        QueryParams::From(vec![("message".to_string(), "invalid".to_string())]),
+                    )
+                    .as_str(),
+                )
+                .into_response()
             }
         }
-        Err(_password_error) => Redirect::to("/login?message=error").into_response(),
+        Err(_password_error) => Redirect::to(
+            build_url(
+                Prefix::Nested("auth"),
+                AuthRoute::Login,
+                QueryParams::From(vec![("message".to_string(), "error".to_string())]),
+            )
+            .as_str(),
+        )
+        .into_response(),
     }
 }
 
 pub async fn logout_handler(mut auth: AuthContext) -> Response {
     auth.logout().await;
-    Redirect::to("/login?message=logout").into_response()
+    Redirect::to(
+        build_url(
+            Prefix::Nested("auth"),
+            AuthRoute::Login,
+            QueryParams::From(vec![("message".to_string(), "logged_out".to_string())]),
+        )
+        .as_str(),
+    )
+    .into_response()
 }
 
 #[derive(Deserialize, Debug)]
@@ -85,20 +124,32 @@ mod tests {
 
     use crate::authn::models::{Credentials, NewUser};
     use crate::authn::repository::create_user;
+    use crate::authn::AuthRoute;
+    use crate::routing::{build_url, Prefix, QueryParams};
     use crate::tests::make_server;
 
     #[sqlx::test]
     async fn test_login_handler_should_redirect_if_user_is_not_found(pool: PgPool) {
         let server = make_server(pool.clone()).await;
+        let url = build_url(Prefix::Nested("auth"), AuthRoute::Login, QueryParams::None);
+
         let response = server
-            .post("/login")
+            .post(url.as_str())
             .form(&Credentials {
                 username: "".into(),
                 password: "".into(),
             })
             .await;
 
-        assert_eq!(response.header("Location"), "/login?message=invalid")
+        let expected_redirection_url = build_url(
+            Prefix::Nested("auth"),
+            AuthRoute::Login,
+            QueryParams::From(vec![("message".to_string(), "invalid".to_string())]),
+        );
+        assert_eq!(
+            response.header("Location"),
+            expected_redirection_url.as_str()
+        );
     }
 
     #[sqlx::test]
@@ -113,16 +164,22 @@ mod tests {
         .await
         .unwrap();
         let server = make_server(pool.clone()).await;
+        let url = build_url(Prefix::Nested("auth"), AuthRoute::Login, QueryParams::None);
 
         let response = server
-            .post("/login")
+            .post(url.as_str())
             .form(&Credentials {
                 username: "user".into(),
                 password: "wrong_password".into(),
             })
             .await;
 
-        assert_eq!(response.header("Location"), "/login?message=invalid")
+        let expected_redirection_url = build_url(
+            Prefix::Nested("auth"),
+            AuthRoute::Login,
+            QueryParams::From(vec![("message".to_string(), "invalid".to_string())]),
+        );
+        assert_eq!(response.header("Location"), expected_redirection_url)
     }
 
     #[sqlx::test]
@@ -137,9 +194,10 @@ mod tests {
         .await
         .unwrap();
         let server = make_server(pool.clone()).await;
+        let url = build_url(Prefix::Nested("auth"), AuthRoute::Login, QueryParams::None);
 
         let response = server
-            .post("/login")
+            .post(url.as_str())
             .form(&Credentials {
                 username: "valid_user".into(),
                 password: "password".into(),
