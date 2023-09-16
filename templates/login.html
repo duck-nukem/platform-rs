@@ -7,7 +7,7 @@
 <? if !message.is_empty() { ?>
 <blockquote><?= message ?></blockquote>
 <? } ?>
-<form method="POST" action="/login">
+<form method="POST" action="/auth/login">
     <label for="username">Username</label>
     <br/>
     <input name="username" type="text"/>

@@ -1,7 +1,7 @@
 version: "3.6"
 services:
   db:
-    image: postgres:alpine
+    image: postgres:16-alpine
     environment:
       POSTGRES_PASSWORD: "password"
     ports:
@@ -30,7 +30,7 @@ services:
       - "14269:14269"
       - "9411:9411"
     environment:
-      - LOG_LEVEL=info
+      - LOG_LEVEL=debug
 
 volumes:
   postgres_data:
