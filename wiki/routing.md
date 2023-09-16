@@ -26,6 +26,6 @@ Router::new().route(MyRoute::Foo.as_url(), get(handler));
 It's also possible to build urls dynamically, so you don't need
 to rely on magic strings to refer to routes.
 
-`build_url(Prefix::Root, MyRoute::Foo, QueryParams::None)` will output `/bar`
-`build_url(Prefix::Nested("baz"), MyRoute::Foo, QueryParams::None)` will output `/baz/bar`
-`build_url(Prefix::Root, MyRoute::Foo, QueryParams::From(vec![("lang", "en")]))` will output `/bar?lang=en`
+- `build_url(Prefix::Root, MyRoute::Foo, QueryParams::None) => /bar`
+- `build_url(Prefix::Nested("baz"), MyRoute::Foo, QueryParams::None) => /baz/bar`
+- `build_url(Prefix::Root, MyRoute::Foo, QueryParams::From(vec![("lang", "en")])) => /bar?lang=en`
