@@ -2,6 +2,7 @@
 extern crate rust_i18n;
 
 use std::env;
+use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::time::Duration;
 
 use axum::{middleware, routing::get, Extension, Router};
@@ -121,10 +122,25 @@ pub async fn app(pool: PgPool, with_tracing: Tracing) -> Router {
 async fn main() {
     dotenv().ok();
 
+    let octets = env::var("SERVER_HOST")
+        .unwrap_or("0.0.0.0".to_string())
+        .split('.')
+        .map(|o| {
+            o.parse::<u8>()
+                .expect("Can't parse octet to numeric format")
+        })
+        .collect::<Vec<u8>>();
+    let ip = IpAddr::V4(Ipv4Addr::new(octets[0], octets[1], octets[2], octets[3]));
+    let port = env::var("SERVER_PORT")
+        .unwrap_or("3000".to_string())
+        .parse::<u16>()
+        .expect("Can't parse port to numeric format");
+    let server_socket_address = SocketAddr::new(ip, port);
+
+    println!("Ready to accept connections at {}", server_socket_address);
     let pool = get_pool().await;
 
-    tracing::info!("Ready to accept connections at :3000");
-    axum::Server::bind(&"0.0.0.0:3000".parse().unwrap())
+    axum::Server::bind(&server_socket_address)
         .serve(
             app(pool.clone(), Tracing::Enabled)
                 .await
