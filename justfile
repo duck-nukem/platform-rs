@@ -1,19 +1,19 @@
 #!/usr/bin/env just --justfile
 
 install_deps:
-    cargo install sqlx-cli rust-i18n cargo-watch
+    @cargo install sqlx-cli rust-i18n cargo-watch
 
 run_aux_services:
-	docker compose up -d --wait
+	@docker compose up -d --wait
 
 run: run_aux_services migrate
-    cargo watch -x run
-
+    @trap "docker compose down" SIGINT; cargo watch -x run
+ 
 build_prod:
-	cargo build --bin platform-rs --release
+	@cargo build --bin platform-rs --release
 
 run_prod: build_prod run_aux_services migrate
-	./target/release/platform-rs
+	@trap "docker compose down" SIGINT; ./target/release/platform-rs
 
 make_migration *ARGS:
     sqlx migrate add {{ ARGS }}
@@ -22,7 +22,7 @@ migrate: run_aux_services
     sqlx migrate run --database-url postgresql://postgres:password@localhost:5432/postgres
 
 test *ARGS: migrate
-    cargo test --bin platform-rs {{ ARGS }}
+    @cargo test --bin platform-rs {{ ARGS }}
 
 reset_db:
 	docker compose down --volumes
