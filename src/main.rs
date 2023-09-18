@@ -36,7 +36,6 @@ pub mod routing;
 mod session;
 mod templates;
 
-pub mod forms;
 #[cfg(test)]
 mod tests;
 
