@@ -3,20 +3,18 @@ extern crate rust_i18n;
 
 use std::env;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
-use axum::{Extension, middleware, Router, routing::get};
+
+use axum::{Router, routing::get};
 use axum_login::{
-    AuthLayer, PostgresStore, RequireAuthorizationLayer,
+    PostgresStore, RequireAuthorizationLayer,
 };
 use dotenv::dotenv;
 use sqlx::PgPool;
 
 use database::get_pool;
-use http::{route_auth_guard, set_security_headers};
 
 pub(crate) use crate::authn::models::User;
 use crate::authn::views;
-
-use crate::http::handler_404;
 use crate::session::CookieStore;
 
 mod authn;
@@ -41,28 +39,21 @@ pub enum Tracing {
 }
 
 pub async fn app(pool: PgPool, _with_tracing: Tracing) -> Router {
-    let secret = bootstrap::read_secret_from_env();
-    let session_layer = bootstrap::build_session_layer(CookieStore::new(), &secret);
-    let user_store = PostgresStore::<User>::new(pool.clone());
-    let auth_layer = AuthLayer::new(user_store, &secret);
-
-    let mut router = Router::new()
+    let app_router = Router::new()
         .route("/greet", get(views::logged_in_view))
         // ↑ authenticated views go above
         .route_layer(RequireAuthorizationLayer::<i64, User>::login())
         // ↓ public views go below
-        .nest("/auth", authn::routes())
-        .route_layer(middleware::from_fn(set_security_headers))
-        .route_layer(middleware::from_fn(route_auth_guard))
-        .layer(auth_layer)
-        .layer(session_layer)
-        .layer(Extension(pool.clone()))
-        .layer(tower_request_id::RequestIdLayer)
-        .layer(tower_http::compression::CompressionLayer::new())
-        .layer(tower::ServiceBuilder::new().concurrency_limit(32))
-        .fallback(handler_404);
+        .nest("/auth", authn::routes());
 
-    router = router.fallback(handler_404);
+    let user_store = PostgresStore::<User>::new(pool.clone());
+    let session_store = CookieStore::new();
+    let router = bootstrap::configure_auxiliary_routing(
+        app_router,
+        user_store,
+        session_store,
+        pool.clone(),
+    );
 
     router
 }
