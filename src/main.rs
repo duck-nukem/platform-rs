@@ -10,6 +10,7 @@ use axum_login::axum_sessions::{PersistencePolicy, SameSite};
 use axum_login::{
     axum_sessions::SessionLayer, AuthLayer, PostgresStore, RequireAuthorizationLayer,
 };
+use bootstrap::read_secret_from_env;
 use dotenv::dotenv;
 use session::CookieStore;
 use sqlx::PgPool;
@@ -23,6 +24,7 @@ use crate::authn::views;
 use crate::http::handler_404;
 
 mod authn;
+mod bootstrap;
 mod database;
 mod deserialization;
 mod http;
@@ -43,12 +45,7 @@ pub enum Tracing {
 }
 
 pub async fn app(pool: PgPool, _with_tracing: Tracing) -> Router {
-    let mut secret: [u8; 64] = [0; 64];
-    secret.copy_from_slice(
-        env::var("APP_SECRET")
-            .expect("App Secret is either undefined or not exactly 64 char long!")
-            .as_bytes(),
-    );
+    let secret = read_secret_from_env();
 
     let session_duration_minutes = env::var("SESSION_LIFETIME_MINUTES")
         .unwrap_or("10".to_string())
