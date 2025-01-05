@@ -6,7 +6,7 @@ use tower_request_id::RequestId;
 use tracing::instrument;
 
 use crate::authn::models::User;
-use crate::routing::SerializeableAsUrl;
+use crate::routing::SerializableAsUrl;
 use crate::templates::render;
 use crate::AuthContext;
 
@@ -18,7 +18,7 @@ pub enum LoggedInRoute {
     Greetings,
 }
 
-impl SerializeableAsUrl for LoggedInRoute {
+impl SerializableAsUrl for LoggedInRoute {
     fn as_url(&self) -> &'static str {
         match self {
             LoggedInRoute::Greetings => "/greet",

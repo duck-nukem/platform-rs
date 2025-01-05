@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-pub trait SerializeableAsUrl {
+pub trait SerializableAsUrl {
     fn as_url(&self) -> &'static str;
 }
 
@@ -16,7 +16,7 @@ pub enum QueryParams {
 
 pub fn build_url(
     prefix: Prefix,
-    route_name: impl SerializeableAsUrl + 'static,
+    route_name: impl SerializableAsUrl + 'static,
     query_params: QueryParams,
 ) -> String {
     let path = match prefix {
@@ -50,7 +50,7 @@ mod tests {
         Slashed,
     }
 
-    impl SerializeableAsUrl for TestRoute {
+    impl SerializableAsUrl for TestRoute {
         fn as_url(&self) -> &'static str {
             match self {
                 TestRoute::Login => "/login",

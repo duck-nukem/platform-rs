@@ -4,7 +4,7 @@ pub mod views;
 
 use axum::{routing::get, routing::post, Router};
 
-use crate::routing::SerializeableAsUrl;
+use crate::routing::SerializableAsUrl;
 
 use super::views::{
     auth::{login_handler, login_view, logout_handler},
@@ -18,7 +18,7 @@ pub enum AuthRoute {
     Signup,
 }
 
-impl SerializeableAsUrl for AuthRoute {
+impl SerializableAsUrl for AuthRoute {
     fn as_url(&self) -> &'static str {
         match self {
             AuthRoute::Login => "/login",
