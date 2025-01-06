@@ -1,4 +1,9 @@
 {
   "_version": 1,
-  "messages.hello": "Szia %{username}! A titkos kódod: %{nonce}"
+  "messages.hello": "Szia %{username}! A titkos kódod: %{nonce}",
+  "greet.canInlineRun": "Futnak az inline scriptek?",
+  "greet.canNonceRun": "Futnak a nonce alapú scriptek?",
+  "greet.yes": "Igen",
+  "greet.no": "Nem",
+  "auth.logout": "Kijelentkezés"
 }

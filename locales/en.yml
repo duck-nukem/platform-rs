@@ -1,4 +1,9 @@
 {
   "_version": 1,
-  "messages.hello": "Hello %{username}, your nonce is: %{nonce}!"
+  "messages.hello": "Hello %{username}, your nonce is: %{nonce}!",
+  "greet.canInlineRun": "Can inline scripts run?",
+  "greet.canNonceRun": "Can nonce-based scripts run?",
+  "greet.yes": "Yes",
+  "greet.no": "No",
+  "auth.logout": "Logout"
 }
