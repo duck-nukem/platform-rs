@@ -1,4 +1,6 @@
+use std::convert::TryInto;
 use std::env;
+use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::time::Duration;
 
 use axum::{Extension, middleware, Router};
@@ -8,12 +10,13 @@ use axum_login::axum_sessions::async_session::SessionStore;
 use sqlx::PgPool;
 
 use crate::authn::models::User;
+use crate::environment::{read_bool_env_var, read_mandatory_env_var, read_numeric_env_var};
 use crate::http::{handler_404, route_auth_guard, set_security_headers};
 
 pub type AppSecret = [u8; 64];
 
 pub fn get_app_secret() -> AppSecret {
-    let secret = env::var("APP_SECRET").expect("App Secret is either undefined or not exactly 64 char long!");
+    let secret = read_mandatory_env_var("APP_SECRET");
     let mut secret_bytes: AppSecret = [0; 64];
     secret_bytes.copy_from_slice(secret.as_bytes());
 
@@ -24,14 +27,8 @@ pub fn build_session_layer(
     session_storage: impl SessionStore,
     secret: &AppSecret,
 ) -> SessionLayer<impl SessionStore> {
-    let session_duration_minutes = env::var("SESSION_LIFETIME_MINUTES")
-        .unwrap_or("10".to_string())
-        .parse::<u64>()
-        .expect("Invalid session lifetime; can't convert to numeric value");
-    let is_secure_cookie = env::var("SECURE_COOKIE")
-        .unwrap_or("true".to_string())
-        .to_ascii_lowercase()
-        .eq("true");
+    let session_duration_minutes = read_numeric_env_var("SESSION_LIFETIME_MINUTES", 10);
+    let is_secure_cookie = read_bool_env_var("SECURE_COOKIE", true);
     let session_layer = SessionLayer::new(session_storage, secret)
         .with_persistence_policy(PersistencePolicy::ExistingOnly)
         .with_session_ttl(Some(Duration::from_secs(session_duration_minutes * 60)))
@@ -68,4 +65,16 @@ pub fn configure_auxiliary_routing(
         .fallback(handler_404);
 
     configured_router
+}
+
+pub fn build_socket_from_ip_port(ipv4_address: String, port: u16) -> SocketAddr {
+    let octets: [u8; 4] = ipv4_address
+        .split('.')
+        .map(|o| o.parse::<u8>().expect("Can't parse octet to numeric format"))
+        .collect::<Vec<u8>>()
+        .try_into()
+        .expect("IPv4 address must have exactly 4 octets");
+    let ip = IpAddr::V4(Ipv4Addr::new(octets[0], octets[1], octets[2], octets[3]));
+
+    SocketAddr::new(ip, port)
 }

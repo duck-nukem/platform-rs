@@ -1,9 +1,6 @@
 #[macro_use]
 extern crate rust_i18n;
 
-use std::env;
-use std::net::{IpAddr, Ipv4Addr, SocketAddr};
-
 use axum::{Router, routing::get};
 use axum_login::{
     PostgresStore, RequireAuthorizationLayer,
@@ -15,12 +12,15 @@ use database::get_pool;
 
 pub(crate) use crate::authn::models::User;
 use crate::authn::views;
+use crate::bootstrap::build_socket_from_ip_port;
+use crate::environment::{read_env_var, read_numeric_env_var};
 use crate::session::CookieStore;
 
 mod authn;
 mod bootstrap;
 mod database;
 mod deserialization;
+mod environment;
 mod http;
 mod routing;
 mod session;
@@ -62,27 +62,15 @@ pub async fn app(pool: PgPool, _with_tracing: Tracing) -> Router {
 async fn main() {
     dotenv().ok();
 
-    let octets = env::var("SERVER_HOST")
-        .unwrap_or("0.0.0.0".to_string())
-        .split('.')
-        .map(|o| {
-            o.parse::<u8>()
-                .expect("Can't parse octet to numeric format")
-        })
-        .collect::<Vec<u8>>();
-    let ip = IpAddr::V4(Ipv4Addr::new(octets[0], octets[1], octets[2], octets[3]));
-    let port = env::var("SERVER_PORT")
-        .unwrap_or("3000".to_string())
-        .parse::<u16>()
-        .expect("Can't parse port to numeric format");
-    let server_socket_address = SocketAddr::new(ip, port);
-
+    let server_socket_address = build_socket_from_ip_port(
+        read_env_var("SERVER_HOST", "0.0.0.0"),
+        read_numeric_env_var("SERVER_PORT", 3000u16),
+    );
     println!("Ready to accept connections at {}", server_socket_address);
-    let pool = get_pool().await;
 
     axum::Server::bind(&server_socket_address)
         .serve(
-            app(pool.clone(), Tracing::Enabled)
+            app(get_pool().await, Tracing::Enabled)
                 .await
                 .into_make_service(),
         )
