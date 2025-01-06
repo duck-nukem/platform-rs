@@ -9,13 +9,12 @@ use tracing::instrument;
 
 use crate::authn::models::Credentials;
 use crate::authn::repository::find_by_username;
-use crate::authn::AuthRoute;
+use crate::authn::routes::AuthRoute;
+use crate::dashboard::routes::DashboardRoute;
 use crate::deserialization::empty_string_as_none;
 use crate::routing::{build_url, Prefix, QueryParams};
 use crate::templates::render;
 use crate::AuthContext;
-
-use super::LoggedInRoute;
 
 #[instrument]
 pub async fn login_view(Query(params): Query<Params>) -> Html<String> {
@@ -66,7 +65,7 @@ pub async fn login_handler(
             if is_valid_password_for_user {
                 auth.login(&user).await.unwrap();
                 Redirect::to(
-                    build_url(Prefix::Root, LoggedInRoute::Greetings, QueryParams::None).as_str(),
+                    build_url(Prefix::Root, DashboardRoute::Greetings, QueryParams::None).as_str(),
                 )
                 .into_response()
             } else {
@@ -124,7 +123,7 @@ mod tests {
 
     use crate::authn::models::{Credentials, NewUser};
     use crate::authn::repository::create_user;
-    use crate::authn::AuthRoute;
+    use crate::authn::routes::AuthRoute;
     use crate::routing::{build_url, Prefix, QueryParams};
     use crate::tests::make_server;
 

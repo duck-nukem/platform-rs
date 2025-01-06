@@ -1,21 +1,21 @@
 #[macro_use]
 extern crate rust_i18n;
 
-use axum::{routing::get, Router};
+use axum::Router;
 use axum_login::{PostgresStore, RequireAuthorizationLayer};
 use dotenv::dotenv;
 use sqlx::PgPool;
 
+use crate::authn::models::User;
 use database::get_pool;
 
-pub(crate) use crate::authn::models::User;
-use crate::authn::views;
 use crate::bootstrap::build_socket_from_ip_port;
 use crate::environment::{read_env_var, read_numeric_env_var};
 use crate::session::CookieStore;
 
 mod authn;
 mod bootstrap;
+mod dashboard;
 mod database;
 mod deserialization;
 mod environment;
@@ -38,11 +38,11 @@ pub enum Tracing {
 
 pub async fn app(pool: PgPool, _with_tracing: Tracing) -> Router {
     let app_router = Router::new()
-        .route("/greet", get(views::logged_in_view))
+        .nest("/", dashboard::routes::routes())
         // ↑ authenticated views go above
         .route_layer(RequireAuthorizationLayer::<i64, User>::login())
         // ↓ public views go below
-        .nest("/auth", authn::routes());
+        .nest("/auth", authn::routes::routes());
 
     let user_store = PostgresStore::<User>::new(pool.clone());
     let session_store = CookieStore::new();

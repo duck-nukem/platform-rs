@@ -26,8 +26,8 @@ pub async fn signup_handler(
     )
     .await;
     match created_user {
-        Ok(_) => Redirect::to("/login?message=success"),
-        Err(_) => Redirect::to("/signup?message=error"),
+        Ok(_) => Redirect::to("/auth/login?message=success"),
+        Err(_) => Redirect::to("/auth/signup?message=error"),
     }
 }
 

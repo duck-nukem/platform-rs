@@ -1,15 +1,8 @@
-pub mod models;
-pub mod repository;
-pub mod views;
-
-use axum::{routing::get, routing::post, Router};
-
+use crate::authn::views::auth::{login_handler, login_view, logout_handler};
+use crate::authn::views::signup::{signup_handler, signup_view};
 use crate::routing::SerializableAsUrl;
-
-use super::views::{
-    auth::{login_handler, login_view, logout_handler},
-    signup::{signup_handler, signup_view},
-};
+use axum::routing::{get, post};
+use axum::Router;
 
 #[derive(Clone, Copy, Debug)]
 pub enum AuthRoute {
