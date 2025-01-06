@@ -10,9 +10,11 @@ use sqlx::PgPool;
 use crate::authn::models::User;
 use crate::http::{handler_404, route_auth_guard, set_security_headers};
 
-pub fn read_secret_from_env() -> [u8; 64] {
+pub type AppSecret = [u8; 64];
+
+pub fn get_app_secret() -> AppSecret {
     let secret = env::var("APP_SECRET").expect("App Secret is either undefined or not exactly 64 char long!");
-    let mut secret_bytes = [0; 64];
+    let mut secret_bytes: AppSecret = [0; 64];
     secret_bytes.copy_from_slice(secret.as_bytes());
 
     secret_bytes
@@ -20,7 +22,7 @@ pub fn read_secret_from_env() -> [u8; 64] {
 
 pub fn build_session_layer(
     session_storage: impl SessionStore,
-    secret: &[u8; 64],
+    secret: &AppSecret,
 ) -> SessionLayer<impl SessionStore> {
     let session_duration_minutes = env::var("SESSION_LIFETIME_MINUTES")
         .unwrap_or("10".to_string())
@@ -46,7 +48,7 @@ pub fn configure_auxiliary_routing(
     session_storage: impl SessionStore,
     database_pool: PgPool,
 ) -> Router {
-    let secret = read_secret_from_env();
+    let secret = get_app_secret();
     let auth_layer = AuthLayer::new(user_store, &secret);
     let session_layer = build_session_layer(session_storage, &secret);
     let max_concurrency_limit = env::var("MAX_CONCURRENCY_LIMIT")
