@@ -1,5 +1,6 @@
-use std::{env, time::Duration};
+use std::time::Duration;
 
+use crate::environment::read_numeric_env_var;
 use axum::async_trait;
 use axum_login::axum_sessions::async_session::{base64, Error, Session, SessionStore};
 use chrono::Utc;
@@ -17,11 +18,7 @@ impl CookieStore {
 impl SessionStore for CookieStore {
     async fn load_session(&self, cookie_value: String) -> Result<Option<Session>, Error> {
         // should be an app-wide static; ideally only read once as it's not supposed to change
-        let session_duration_minutes = env::var("SESSION_LIFETIME_MINUTES")
-            .unwrap_or("10".to_string())
-            .parse::<u64>()
-            .expect("Invalid session lifetime; can't convert to numeric value");
-
+        let session_duration_minutes = read_numeric_env_var("SESSION_LIFETIME_MINUTES", 10u64);
         let serialized = base64::decode(cookie_value)?;
         let mut session: Session = bincode::deserialize(&serialized)?;
         session.set_expiry(Utc::now() + Duration::from_secs(session_duration_minutes * 60));

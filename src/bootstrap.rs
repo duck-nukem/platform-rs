@@ -1,5 +1,4 @@
 use std::convert::TryInto;
-use std::env;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::time::Duration;
 
@@ -47,10 +46,7 @@ pub fn configure_auxiliary_routing(
     let secret = get_app_secret();
     let auth_layer = AuthLayer::new(user_store, &secret);
     let session_layer = build_session_layer(session_storage, &secret);
-    let max_concurrency_limit = env::var("MAX_CONCURRENCY_LIMIT")
-        .unwrap_or("32".to_string())
-        .parse::<usize>()
-        .expect("Invalid concurrency limit; can't convert to numeric value");
+    let max_concurrency_limit = read_numeric_env_var("MAX_CONCURRENCY_LIMIT", 32usize);
 
     router_with_app_routes
         .route_layer(middleware::from_fn(set_security_headers))
