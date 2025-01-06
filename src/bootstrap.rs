@@ -3,10 +3,10 @@ use std::env;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::time::Duration;
 
-use axum::{Extension, middleware, Router};
-use axum_login::{AuthLayer, SqlxStore};
-use axum_login::axum_sessions::{PersistencePolicy, SameSite, SessionLayer};
+use axum::{middleware, Extension, Router};
 use axum_login::axum_sessions::async_session::SessionStore;
+use axum_login::axum_sessions::{PersistencePolicy, SameSite, SessionLayer};
+use axum_login::{AuthLayer, SqlxStore};
 use sqlx::PgPool;
 
 use crate::authn::models::User;
@@ -29,14 +29,13 @@ pub fn build_session_layer(
 ) -> SessionLayer<impl SessionStore> {
     let session_duration_minutes = read_numeric_env_var("SESSION_LIFETIME_MINUTES", 10);
     let is_secure_cookie = read_bool_env_var("SECURE_COOKIE", true);
-    let session_layer = SessionLayer::new(session_storage, secret)
+
+    SessionLayer::new(session_storage, secret)
         .with_persistence_policy(PersistencePolicy::ExistingOnly)
         .with_session_ttl(Some(Duration::from_secs(session_duration_minutes * 60)))
         .with_same_site_policy(SameSite::Strict)
         .with_http_only(true)
-        .with_secure(is_secure_cookie);
-
-    session_layer
+        .with_secure(is_secure_cookie)
 }
 
 pub fn configure_auxiliary_routing(
@@ -53,7 +52,7 @@ pub fn configure_auxiliary_routing(
         .parse::<usize>()
         .expect("Invalid concurrency limit; can't convert to numeric value");
 
-    let configured_router = router_with_app_routes
+    router_with_app_routes
         .route_layer(middleware::from_fn(set_security_headers))
         .route_layer(middleware::from_fn(route_auth_guard))
         .layer(auth_layer)
@@ -62,15 +61,16 @@ pub fn configure_auxiliary_routing(
         .layer(tower_request_id::RequestIdLayer)
         .layer(tower_http::compression::CompressionLayer::new())
         .layer(tower::ServiceBuilder::new().concurrency_limit(max_concurrency_limit))
-        .fallback(handler_404);
-
-    configured_router
+        .fallback(handler_404)
 }
 
 pub fn build_socket_from_ip_port(ipv4_address: String, port: u16) -> SocketAddr {
     let octets: [u8; 4] = ipv4_address
         .split('.')
-        .map(|o| o.parse::<u8>().expect("Can't parse octet to numeric format"))
+        .map(|o| {
+            o.parse::<u8>()
+                .expect("Can't parse octet to numeric format")
+        })
         .collect::<Vec<u8>>()
         .try_into()
         .expect("IPv4 address must have exactly 4 octets");

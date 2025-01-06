@@ -1,10 +1,8 @@
 #[macro_use]
 extern crate rust_i18n;
 
-use axum::{Router, routing::get};
-use axum_login::{
-    PostgresStore, RequireAuthorizationLayer,
-};
+use axum::{routing::get, Router};
+use axum_login::{PostgresStore, RequireAuthorizationLayer};
 use dotenv::dotenv;
 use sqlx::PgPool;
 
@@ -48,14 +46,8 @@ pub async fn app(pool: PgPool, _with_tracing: Tracing) -> Router {
 
     let user_store = PostgresStore::<User>::new(pool.clone());
     let session_store = CookieStore::new();
-    let router = bootstrap::configure_auxiliary_routing(
-        app_router,
-        user_store,
-        session_store,
-        pool.clone(),
-    );
 
-    router
+    bootstrap::configure_auxiliary_routing(app_router, user_store, session_store, pool.clone())
 }
 
 #[tokio::main(flavor = "multi_thread")]

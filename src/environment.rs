@@ -2,11 +2,19 @@ use std::env;
 use std::str::FromStr;
 
 pub fn read_bool_env_var(key: &str, default: bool) -> bool {
-    env::var(key).unwrap_or(default.to_string().to_ascii_lowercase()).eq("true")
+    env::var(key)
+        .unwrap_or(default.to_string().to_ascii_lowercase())
+        .eq("true")
 }
 
-pub fn read_numeric_env_var<T: FromStr + ToString>(key: &str, default: T) -> T where <T as FromStr>::Err: std::fmt::Debug {
-    env::var(key).unwrap_or(default.to_string()).parse::<T>().expect(&format!("Invalid numeric value provided for {}", key))
+pub fn read_numeric_env_var<T: FromStr + ToString>(key: &str, default: T) -> T
+where
+    <T as FromStr>::Err: std::fmt::Debug,
+{
+    env::var(key)
+        .unwrap_or(default.to_string())
+        .parse::<T>()
+        .unwrap_or_else(|_| panic!("Invalid numeric value provided for {}", key))
 }
 
 pub fn read_env_var(key: &str, default: &str) -> String {
@@ -14,5 +22,10 @@ pub fn read_env_var(key: &str, default: &str) -> String {
 }
 
 pub fn read_mandatory_env_var(key: &str) -> String {
-    env::var(key).expect(&format!("{} is a required environment variable, but it wasn't found!", key))
+    env::var(key).unwrap_or_else(|_| {
+        panic!(
+            "{} is a required environment variable, but it wasn't found!",
+            key
+        )
+    })
 }
