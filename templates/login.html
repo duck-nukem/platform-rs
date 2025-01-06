@@ -5,19 +5,19 @@
 </head>
 <body>
 <? if !message.is_empty() { ?>
-<blockquote><?= message ?></blockquote>
+<blockquote><?= t!(format!("{}{}", "loginForm.messages.", message)) ?></blockquote>
 <? } ?>
 <form method="POST" action="/auth/login">
-    <label for="username">Username</label>
+    <label for="username"><?= t!("loginForm.username") ?></label>
     <br/>
     <input name="username" type="text"/>
     <br/>
-    <label for="password">Password</label>
+    <label for="password"><?= t!("loginForm.password") ?></label>
     <br/>
     <input name="password" type="password"/>
     <br/>
-    <button type="submit">Log in</button>
+    <button type="submit"><?= t!("loginForm.submit") ?></button>
 </form>
-<a href="/auth/signup">Sign up</a>
+<a href="/auth/signup"><?= t!("loginForm.signUpLink") ?></a>
 </body>
 </html>
