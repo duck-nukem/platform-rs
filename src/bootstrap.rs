@@ -6,10 +6,15 @@ use axum::{middleware, Extension, Router};
 use axum_login::axum_sessions::async_session::SessionStore;
 use axum_login::axum_sessions::{PersistencePolicy, SameSite, SessionLayer};
 use axum_login::{AuthLayer, SqlxStore};
+use opentelemetry::sdk::{trace, Resource};
+use opentelemetry::KeyValue;
+use opentelemetry_otlp::WithExportConfig;
 use sqlx::PgPool;
 
 use crate::authn::models::User;
-use crate::environment::{read_bool_env_var, read_mandatory_env_var, read_numeric_env_var};
+use crate::environment::{
+    read_bool_env_var, read_env_var, read_mandatory_env_var, read_numeric_env_var,
+};
 use crate::http::{handler_404, route_auth_guard, set_security_headers};
 
 pub type AppSecret = [u8; 64];
@@ -73,4 +78,22 @@ pub fn build_socket_from_ip_port(ipv4_address: String, port: u16) -> SocketAddr 
     let ip = IpAddr::V4(Ipv4Addr::new(octets[0], octets[1], octets[2], octets[3]));
 
     SocketAddr::new(ip, port)
+}
+
+pub(crate) async fn configure_tracing() {
+    let tracer_connection_url = read_env_var("TRACER_CONNECTION_URL", "http://jaeger:4317/");
+    let _ = opentelemetry_otlp::new_pipeline()
+        .tracing()
+        .with_exporter(
+            opentelemetry_otlp::new_exporter()
+                .tonic()
+                .with_endpoint(tracer_connection_url),
+        )
+        .with_trace_config(
+            trace::config().with_resource(Resource::new(vec![KeyValue::new(
+                opentelemetry_semantic_conventions::resource::SERVICE_NAME,
+                "platform-rs",
+            )])),
+        )
+        .install_batch(opentelemetry::runtime::Tokio);
 }

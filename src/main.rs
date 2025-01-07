@@ -36,7 +36,7 @@ pub enum Tracing {
     Disabled,
 }
 
-pub async fn app(pool: PgPool, _with_tracing: Tracing) -> Router {
+pub async fn app(pool: PgPool, with_tracing: Tracing) -> Router {
     let app_router = Router::new()
         .nest("/", dashboard::routes::routes())
         // ↑ authenticated views go above
@@ -46,6 +46,11 @@ pub async fn app(pool: PgPool, _with_tracing: Tracing) -> Router {
 
     let user_store = PostgresStore::<User>::new(pool.clone());
     let session_store = CookieStore::new();
+
+    match with_tracing {
+        Tracing::Enabled => bootstrap::configure_tracing().await,
+        Tracing::Disabled => {}
+    }
 
     bootstrap::configure_auxiliary_routing(app_router, user_store, session_store, pool.clone())
 }
