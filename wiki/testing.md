@@ -33,14 +33,14 @@ mod tests {
         let server = TestServer::new(app(pool.clone(), false).await.into_make_service()).unwrap();
 
         let response = server
-            .post("/login")
+            .post("/auth/login")
             .form(&Credentials {
                 username: "".into(),
                 password: "".into(),
             })
             .await;
 
-        assert_eq!(response.header("Location"), "/login?message=invalid")
+        assert_eq!(response.header("Location"), "/auth/login?message=invalid")
     }
 }
 ```

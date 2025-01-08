@@ -1,4 +1,15 @@
 {
   "_version": 1,
-  "messages.hello": "Hello %{username}, your nonce is: %{nonce}!"
+  "messages.hello": "Hello %{username}, your nonce is: %{nonce}!",
+  "greet.canInlineRun": "Can inline scripts run?",
+  "greet.canNonceRun": "Can nonce-based scripts run?",
+  "greet.yes": "Yes",
+  "greet.no": "No",
+  "auth.logout": "Logout",
+  "loginForm.username": "Username",
+  "loginForm.password": "Password",
+  "loginForm.submit": "Log in",
+  "loginForm.signUpLink": "Sign up",
+  "loginForm.messages.logged_out": "Successful logout",
+  "loginForm.messages.invalid": "Invalid credentials"
 }

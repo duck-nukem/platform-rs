@@ -1,5 +1,4 @@
-use std::env;
-
+use crate::environment::read_mandatory_env_var;
 use dotenv::dotenv;
 use sqlx::pool::PoolConnection;
 use sqlx::postgres::PgPoolOptions;
@@ -20,10 +19,6 @@ pub async fn get_pool() -> PgPool {
 
     PgPoolOptions::new()
         .max_connections(90)
-        .connect_lazy(
-            env::var("DATABASE_URL")
-                .expect("DATABASE_URL envvar is undefined, can't connect to DB!")
-                .as_str(),
-        )
+        .connect_lazy(read_mandatory_env_var("DATABASE_URL").as_str())
         .expect("Can't connect to the Database!")
 }

@@ -1,4 +1,15 @@
 {
   "_version": 1,
-  "messages.hello": "Szia %{username}! A titkos kódod: %{nonce}"
+  "messages.hello": "Szia %{username}! A titkos kódod: %{nonce}",
+  "greet.canInlineRun": "Futnak az inline scriptek?",
+  "greet.canNonceRun": "Futnak a nonce alapú scriptek?",
+  "greet.yes": "Igen",
+  "greet.no": "Nem",
+  "auth.logout": "Kijelentkezés",
+  "loginForm.username": "Felhasználónév",
+  "loginForm.password": "Jelszó",
+  "loginForm.submit": "Bejelentkezés",
+  "loginForm.signUpLink": "Regisztráció",
+  "loginForm.messages.logged_out": "Sikeres kijelentkezés",
+  "loginForm.messages.invalid": "Helytelen felhasználónév vagy jelszó"
 }

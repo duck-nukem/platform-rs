@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="<?= user.locale.as_str() ?>">
 <head>
     <? include!("headers.html"); ?>
 </head>
@@ -8,20 +8,20 @@
 <?= t!("messages.hello", username=user.name, nonce=nonce) ?>
 <script>
     document.addEventListener("DOMContentLoaded", () => {
-        document.getElementById("inline-script-results-container").innerText = "Yes"
+        document.getElementById("inline-script-results-container").innerText = '<?= t!("greet.yes") ?>';
     });
 </script>
 <script nonce="<?= nonce ?>">
     document.addEventListener("DOMContentLoaded", () => {
-        document.getElementById("nonce-results-container").innerText = "Yes"
+        document.getElementById("nonce-results-container").innerText = '<?= t!("greet.yes") ?>';
     });
 </script>
 <ul>
-    <li>Can inline scripts run? <span id="inline-script-results-container">No</span></li>
-    <li>Can nonce-based scripts run? <span id="nonce-results-container">No</span></li>
+    <li><?= t!("greet.canInlineRun") ?> <span id="inline-script-results-container"><?= t!("greet.no") ?></span></li>
+    <li><?= t!("greet.canNonceRun") ?> <span id="nonce-results-container"><?= t!("greet.no") ?></span></li>
 </ul>
-<form method="POST" action="/logout">
-    <button type="submit">Log out</button>
+<form method="POST" action="/auth/logout">
+    <button type="submit"><?= t!("auth.logout") ?></button>
 </form>
 </body>
 </html>

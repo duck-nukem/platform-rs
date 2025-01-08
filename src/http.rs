@@ -21,7 +21,7 @@ pub async fn route_auth_guard<B>(req: Request<B>, next: Next<B>) -> Result<Respo
         *response.status_mut() = StatusCode::FOUND;
         response.headers_mut().insert(
             LOCATION,
-            HeaderValue::from_static("login?message=auth_required"),
+            HeaderValue::from_static("/auth/login?message=auth_required"),
         );
     }
 
