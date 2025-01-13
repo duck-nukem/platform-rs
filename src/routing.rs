@@ -14,6 +14,7 @@ pub enum QueryParams {
     From(Vec<(String, String)>),
 }
 
+#[allow(clippy::needless_pass_by_value)]
 pub fn build_url(
     prefix: Prefix,
     route_name: impl SerializableAsUrl + 'static,
@@ -34,7 +35,7 @@ pub fn build_url(
 
     let mut params_stringified = params
         .iter()
-        .map(|(key, value)| format!("{}={}", key, value))
+        .map(|(key, value)| format!("{key}={value}"))
         .collect::<Vec<String>>();
     params_stringified.sort();
 

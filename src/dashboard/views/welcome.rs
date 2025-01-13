@@ -16,7 +16,7 @@ pub async fn greet_user(auth: AuthContext, req: Request<Body>) -> Html<String> {
         .map(ToString::to_string)
         .unwrap();
     render(GreetingsTemplate {
-        user: auth.current_user.unwrap().to_owned(),
+        user: auth.current_user.unwrap(),
         nonce: request_id.to_string(),
     })
 }

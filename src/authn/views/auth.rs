@@ -19,7 +19,7 @@ use crate::AuthContext;
 #[instrument]
 pub async fn login_view(Query(params): Query<Params>) -> Html<String> {
     render(LoginTemplate {
-        message: params.message.unwrap_or("".parse().unwrap()),
+        message: params.message.unwrap_or_else(String::new),
     })
 }
 
@@ -31,29 +31,26 @@ pub async fn login_handler(
 ) -> impl IntoResponse {
     let connection = pool.acquire().await.unwrap();
     let user_query = find_by_username(connection, login.username.as_str()).await;
-    let user = match user_query {
-        Ok(found_user) => found_user,
-        Err(_) => {
-            /*
-            If the user doesn't exist we simulate a password verification
-            to get the same response time as if there was a match.
+    let Ok(user) = user_query else {
+        /*
+        If the user doesn't exist we simulate a password verification
+        to get the same response time as if there was a match.
 
-            This is required to avoid account enumeration by inspecting the response times.
-             */
-            let _ = verify(
-                login.password.clone().as_str(),
-                "$2y$10$tfFECZbEbCSq1.xBBK5nrOUWbpR2bQig/5T0/SjuEvpY5Diaonk9u", // "password" with cost 10
-            );
-            return Redirect::to(
-                build_url(
-                    Prefix::Nested("auth"),
-                    AuthRoute::Login,
-                    QueryParams::From(vec![("message".to_string(), "invalid".to_string())]),
-                )
-                .as_str(),
+        This is required to avoid account enumeration by inspecting the response times.
+         */
+        let _ = verify(
+            login.password.clone().as_str(),
+            "$2y$10$tfFECZbEbCSq1.xBBK5nrOUWbpR2bQig/5T0/SjuEvpY5Diaonk9u", // "password" with cost 10
+        );
+        return Redirect::to(
+            build_url(
+                Prefix::Nested("auth"),
+                AuthRoute::Login,
+                QueryParams::From(vec![("message".to_string(), "invalid".to_string())]),
             )
-            .into_response();
-        }
+            .as_str(),
+        )
+        .into_response();
     };
 
     let verified_password = verify(

@@ -14,9 +14,9 @@ pub enum AuthRoute {
 impl SerializableAsUrl for AuthRoute {
     fn as_url(&self) -> &'static str {
         match self {
-            AuthRoute::Login => "/login",
-            AuthRoute::Logout => "/logout",
-            AuthRoute::Signup => "/signup",
+            Self::Login => "/login",
+            Self::Logout => "/logout",
+            Self::Signup => "/signup",
         }
     }
 }

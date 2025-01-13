@@ -12,7 +12,7 @@ pub enum DashboardRoute {
 impl SerializableAsUrl for DashboardRoute {
     fn as_url(&self) -> &'static str {
         match self {
-            DashboardRoute::Greetings => "/greet",
+            Self::Greetings => "/greet",
         }
     }
 }

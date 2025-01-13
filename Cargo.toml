@@ -9,6 +9,15 @@ opt-level = 0
 [profile.release]
 opt-level = 3
 
+[lints.clippy]
+complexity   = { priority = -1, level = "deny" }
+correctness  = { priority = -1, level = "deny" }
+nursery      = { priority = -1, level = "deny" }
+pedantic     = { priority = -1, level = "deny" }
+perf         = { priority = -1, level = "deny" }
+style        = { priority = -1, level = "deny" }
+suspicious   = { priority = -1, level = "deny" }
+
 [dependencies]
 axum = "0.6.20"
 axum-login = { version = "0.5.0", features = ["postgres"] }

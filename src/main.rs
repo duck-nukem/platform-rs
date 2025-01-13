@@ -60,10 +60,10 @@ async fn main() {
     dotenv().ok();
 
     let server_socket_address = build_socket_from_ip_port(
-        read_env_var("SERVER_HOST", "0.0.0.0"),
-        read_numeric_env_var("SERVER_PORT", 3000u16),
+        &read_env_var("SERVER_HOST", "0.0.0.0"),
+        read_numeric_env_var("SERVER_PORT", &3000u16),
     );
-    println!("Ready to accept connections at {}", server_socket_address);
+    println!("Ready to accept connections at {server_socket_address}");
 
     axum::Server::bind(&server_socket_address)
         .serve(

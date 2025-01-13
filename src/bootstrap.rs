@@ -31,7 +31,7 @@ pub fn build_session_layer(
     session_storage: impl SessionStore,
     secret: &AppSecret,
 ) -> SessionLayer<impl SessionStore> {
-    let session_duration_minutes = read_numeric_env_var("SESSION_LIFETIME_MINUTES", 10);
+    let session_duration_minutes = read_numeric_env_var("SESSION_LIFETIME_MINUTES", &10);
     let is_secure_cookie = read_bool_env_var("SECURE_COOKIE", true);
 
     SessionLayer::new(session_storage, secret)
@@ -51,7 +51,7 @@ pub fn configure_auxiliary_routing(
     let secret = get_app_secret();
     let auth_layer = AuthLayer::new(user_store, &secret);
     let session_layer = build_session_layer(session_storage, &secret);
-    let max_concurrency_limit = read_numeric_env_var("MAX_CONCURRENCY_LIMIT", 32usize);
+    let max_concurrency_limit = read_numeric_env_var("MAX_CONCURRENCY_LIMIT", &32usize);
 
     router_with_app_routes
         .route_layer(middleware::from_fn(set_security_headers))
@@ -65,7 +65,7 @@ pub fn configure_auxiliary_routing(
         .fallback(handler_404)
 }
 
-pub fn build_socket_from_ip_port(ipv4_address: String, port: u16) -> SocketAddr {
+pub fn build_socket_from_ip_port(ipv4_address: &str, port: u16) -> SocketAddr {
     let octets: [u8; 4] = ipv4_address
         .split('.')
         .map(|o| {
@@ -80,7 +80,8 @@ pub fn build_socket_from_ip_port(ipv4_address: String, port: u16) -> SocketAddr 
     SocketAddr::new(ip, port)
 }
 
-pub(crate) async fn configure_tracing() {
+#[allow(clippy::unused_async)]
+pub async fn configure_tracing() {
     let tracer_connection_url = read_env_var("TRACER_CONNECTION_URL", "http://jaeger:4317/");
     let _ = opentelemetry_otlp::new_pipeline()
         .tracing()

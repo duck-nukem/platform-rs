@@ -9,7 +9,7 @@ use chrono::Utc;
 pub struct CookieStore;
 
 impl CookieStore {
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         Self
     }
 }
@@ -18,7 +18,7 @@ impl CookieStore {
 impl SessionStore for CookieStore {
     async fn load_session(&self, cookie_value: String) -> Result<Option<Session>, Error> {
         // should be an app-wide static; ideally only read once as it's not supposed to change
-        let session_duration_minutes = read_numeric_env_var("SESSION_LIFETIME_MINUTES", 10u64);
+        let session_duration_minutes = read_numeric_env_var("SESSION_LIFETIME_MINUTES", &10u64);
         let serialized = base64::decode(cookie_value)?;
         let mut session: Session = bincode::deserialize(&serialized)?;
         session.set_expiry(Utc::now() + Duration::from_secs(session_duration_minutes * 60));

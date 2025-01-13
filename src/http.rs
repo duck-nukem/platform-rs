@@ -11,6 +11,7 @@ use axum::{
 use sailfish::TemplateOnce;
 use tower_request_id::RequestId;
 
+#[allow(clippy::future_not_send)]
 pub async fn route_auth_guard<B>(req: Request<B>, next: Next<B>) -> Result<Response, StatusCode> {
     let mut response = next.run(req).await;
     let is_unauthenticated = response.status() == StatusCode::UNAUTHORIZED;
@@ -28,6 +29,7 @@ pub async fn route_auth_guard<B>(req: Request<B>, next: Next<B>) -> Result<Respo
     Ok(response)
 }
 
+#[allow(clippy::future_not_send)]
 pub async fn set_security_headers<B>(
     req: Request<B>,
     next: Next<B>,
@@ -38,14 +40,11 @@ pub async fn set_security_headers<B>(
         .map(ToString::to_string)
         .unwrap();
     let mut response = next.run(req).await;
-    let header_value = format!(
-        "object-src 'none'; base-uri 'none'; script-src 'nonce-{}'",
-        request_id
-    )
-    .to_owned();
+    let header_value =
+        format!("object-src 'none'; base-uri 'none'; script-src 'nonce-{request_id}'");
     response.headers_mut().insert(
         CONTENT_SECURITY_POLICY,
-        HeaderValue::from_bytes(header_value.clone().as_bytes()).unwrap(),
+        HeaderValue::from_bytes(header_value.as_bytes()).unwrap(),
     );
 
     Ok(response)
