@@ -9,7 +9,7 @@ use tracing::instrument;
 
 #[instrument]
 pub async fn signup_view() -> Html<String> {
-    render(SignupTemplate {})
+    render(Template {})
 }
 
 #[instrument]
@@ -36,4 +36,4 @@ pub async fn signup_handler(
 
 #[derive(TemplateOnce)]
 #[template(path = "signup.html")]
-pub struct SignupTemplate {}
+pub struct Template {}

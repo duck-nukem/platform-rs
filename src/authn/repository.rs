@@ -4,14 +4,11 @@ use sqlx::Error;
 use tracing::instrument;
 
 use crate::authn::models::{NewUser, User};
-use crate::database::DatabaseConnection;
+use crate::database::Connection;
 use crate::environment::read_mandatory_env_var;
 
 #[instrument]
-pub async fn find_by_username(
-    mut connection: DatabaseConnection,
-    username: &str,
-) -> Result<User, Error> {
+pub async fn find_by_username(mut connection: Connection, username: &str) -> Result<User, Error> {
     sqlx::query_as("SELECT * FROM users WHERE name = $1 LIMIT 1;")
         .bind(username)
         .fetch_one(connection.as_mut())
@@ -20,7 +17,7 @@ pub async fn find_by_username(
 
 #[instrument]
 pub async fn create_user(
-    mut connection: DatabaseConnection,
+    mut connection: Connection,
     user: NewUser,
 ) -> Result<Option<PgRow>, Error> {
     let mut salt: [u8; 16] = Default::default();

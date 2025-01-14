@@ -4,7 +4,7 @@ use sqlx::pool::PoolConnection;
 use sqlx::postgres::PgPoolOptions;
 use sqlx::{PgPool, Postgres};
 
-pub type DatabaseConnection = PoolConnection<Postgres>;
+pub type Connection = PoolConnection<Postgres>;
 
 /// Try to be mindful of the usage.
 /// Usually you'd want Extension(pool): Extension<PgPool>
