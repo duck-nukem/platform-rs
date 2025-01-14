@@ -1,4 +1,4 @@
-use crate::authn::models::User;
+use crate::authn::models::{User, ERROR_USER};
 use crate::templates::render;
 use crate::AuthContext;
 use axum::body::Body;
@@ -13,10 +13,9 @@ pub async fn greet_user(auth: AuthContext, req: Request<Body>) -> Html<String> {
     let request_id = &*req
         .extensions()
         .get::<RequestId>()
-        .map(ToString::to_string)
-        .unwrap();
+        .map_or_else(|| "INVALID REQUEST ID!".to_owned(), ToString::to_string);
     render(GreetingsTemplate {
-        user: auth.current_user.unwrap(),
+        user: auth.current_user.unwrap_or_else(|| ERROR_USER.clone()),
         nonce: request_id.to_string(),
     })
 }

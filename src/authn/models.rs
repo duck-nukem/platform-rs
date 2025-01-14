@@ -1,5 +1,6 @@
 use axum_login::secrecy::SecretVec;
 use axum_login::AuthUser;
+use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Default, Clone, Serialize)]
@@ -15,6 +16,13 @@ pub struct User {
     pub name: String,
     pub locale: String,
 }
+
+pub static ERROR_USER: Lazy<User> = Lazy::new(|| User {
+    id: -1,
+    password_hash: String::new(),
+    name: String::from("Unknown"),
+    locale: String::from("en"),
+});
 
 impl AuthUser<i64> for User {
     fn get_id(&self) -> i64 {

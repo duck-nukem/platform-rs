@@ -65,6 +65,7 @@ pub fn configure_auxiliary_routing(
         .fallback(handler_404)
 }
 
+#[allow(clippy::expect_used)]
 pub fn build_socket_from_ip_port(ipv4_address: &str, port: u16) -> SocketAddr {
     let octets: [u8; 4] = ipv4_address
         .split('.')

@@ -17,8 +17,11 @@ pub async fn signup_handler(
     Extension(pool): Extension<PgPool>,
     Form(signup): Form<Credentials>,
 ) -> impl IntoResponse {
+    let Ok(dbpool) = pool.acquire().await else {
+        return Redirect::to("/auth/signup?message=error");
+    };
     let created_user = create_user(
-        pool.acquire().await.unwrap(),
+        dbpool,
         NewUser {
             name: signup.username,
             raw_password: signup.password,

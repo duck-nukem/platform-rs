@@ -55,6 +55,7 @@ pub async fn app(pool: PgPool, with_tracing: Tracing) -> Router {
     bootstrap::configure_auxiliary_routing(app_router, user_store, session_store, pool.clone())
 }
 
+#[allow(clippy::expect_used)]
 #[tokio::main(flavor = "multi_thread")]
 async fn main() {
     dotenv().ok();
@@ -72,5 +73,5 @@ async fn main() {
                 .into_make_service(),
         )
         .await
-        .unwrap();
+        .expect("Unable to start the server");
 }

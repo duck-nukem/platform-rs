@@ -7,7 +7,7 @@ use serde::Deserialize;
 use sqlx::PgPool;
 use tracing::instrument;
 
-use crate::authn::models::Credentials;
+use crate::authn::models::{Credentials, User};
 use crate::authn::repository::find_by_username;
 use crate::authn::routes::AuthRoute;
 use crate::dashboard::routes::DashboardRoute;
@@ -23,13 +23,47 @@ pub async fn login_view(Query(params): Query<Params>) -> Html<String> {
     })
 }
 
+async fn perform_login(mut auth: AuthContext, is_correct_password: bool, user: &User) -> Response {
+    let error_response = Redirect::to(
+        build_url(
+            Prefix::Nested("auth"),
+            AuthRoute::Login,
+            QueryParams::From(vec![("message".to_string(), "invalid".to_string())]),
+        )
+        .as_str(),
+    )
+    .into_response();
+
+    if !is_correct_password {
+        return error_response;
+    }
+
+    match auth.login(user).await {
+        Ok(()) => Redirect::to(
+            build_url(Prefix::Root, DashboardRoute::Greetings, QueryParams::None).as_str(),
+        )
+        .into_response(),
+        Err(_) => error_response,
+    }
+}
+
 #[instrument]
 pub async fn login_handler(
-    mut auth: AuthContext,
+    auth: AuthContext,
     Extension(pool): Extension<PgPool>,
     Form(login): Form<Credentials>,
 ) -> impl IntoResponse {
-    let connection = pool.acquire().await.unwrap();
+    let Ok(connection) = pool.acquire().await else {
+        return Redirect::to(
+            build_url(
+                Prefix::Nested("auth"),
+                AuthRoute::Login,
+                QueryParams::From(vec![("message".to_string(), "db_error".to_string())]),
+            )
+            .as_str(),
+        )
+        .into_response();
+    };
     let user_query = find_by_username(connection, login.username.as_str()).await;
     let Ok(user) = user_query else {
         /*
@@ -59,23 +93,7 @@ pub async fn login_handler(
     );
     match verified_password {
         Ok(is_valid_password_for_user) => {
-            if is_valid_password_for_user {
-                auth.login(&user).await.unwrap();
-                Redirect::to(
-                    build_url(Prefix::Root, DashboardRoute::Greetings, QueryParams::None).as_str(),
-                )
-                .into_response()
-            } else {
-                Redirect::to(
-                    build_url(
-                        Prefix::Nested("auth"),
-                        AuthRoute::Login,
-                        QueryParams::From(vec![("message".to_string(), "invalid".to_string())]),
-                    )
-                    .as_str(),
-                )
-                .into_response()
-            }
+            perform_login(auth, is_valid_password_for_user, &user).await
         }
         Err(_password_error) => Redirect::to(
             build_url(

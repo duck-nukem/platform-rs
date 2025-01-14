@@ -25,12 +25,14 @@ pub async fn create_user(
 ) -> Result<Option<PgRow>, Error> {
     let mut salt: [u8; 16] = Default::default();
     salt.copy_from_slice(read_mandatory_env_var("PASSWORD_SALT").as_bytes());
-    let password_hash = hash_with_salt(user.raw_password, 10, salt).unwrap();
+    let hash_parts = hash_with_salt(user.raw_password, 10, salt);
+    let password_hash = hash_parts.map_or_else(|_| String::new(), |parts| parts.to_string());
+
     sqlx::query(
         "INSERT INTO users (name, password_hash, locale) VALUES ($1, $2, 'en') RETURNING id;",
     )
     .bind(user.name)
-    .bind(password_hash.to_string())
+    .bind(&password_hash)
     .fetch_optional(connection.as_mut())
     .await
 }

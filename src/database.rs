@@ -14,6 +14,7 @@ pub type DatabaseConnection = PoolConnection<Postgres>;
 /// pooling won't work properly and postgres will run out
 /// of connections to give.
 ///
+#[allow(clippy::expect_used)]
 pub async fn get_pool() -> PgPool {
     dotenv().ok();
 

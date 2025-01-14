@@ -30,6 +30,7 @@ pub async fn route_auth_guard<B>(req: Request<B>, next: Next<B>) -> Result<Respo
 }
 
 #[allow(clippy::future_not_send)]
+#[allow(clippy::expect_used)]
 pub async fn set_security_headers<B>(
     req: Request<B>,
     next: Next<B>,
@@ -38,13 +39,14 @@ pub async fn set_security_headers<B>(
         .extensions()
         .get::<RequestId>()
         .map(ToString::to_string)
-        .unwrap();
+        .expect("Can't set security headers due to a missing or invalid request id");
     let mut response = next.run(req).await;
     let header_value =
         format!("object-src 'none'; base-uri 'none'; script-src 'nonce-{request_id}'");
     response.headers_mut().insert(
         CONTENT_SECURITY_POLICY,
-        HeaderValue::from_bytes(header_value.as_bytes()).unwrap(),
+        HeaderValue::from_bytes(header_value.as_bytes())
+            .expect("Unable to construct security headers"),
     );
 
     Ok(response)
