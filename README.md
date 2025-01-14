@@ -17,7 +17,7 @@ https://cheatography.com/linux-china/cheat-sheets/justfile/
 Last recorded performance: 
 
 * ~1k rps with sessions in postgres
-* ~5k rps  with sessions only in cookies
+* ~5k rps with sessions only in cookies
 * ~20k rps without database access;
 
 Fresh django with postgres only doing a `select 1`; to measure perf:
@@ -118,3 +118,5 @@ Status code distribution:
 Error distribution:
   [18] connection error: Connection reset by peer (os error 54)
 ```
+
+This is running with the development build; "release" reaches ~11k requests per seconds using the DB.
