@@ -18,8 +18,9 @@ perf         = { priority = -1, level = "deny" }
 style        = { priority = -1, level = "deny" }
 suspicious   = { priority = -1, level = "deny" }
 
-unwrap-used = "deny"
-expect-used = "deny"
+unwrap-used     = "deny"
+expect-used     = "deny"
+redundant-clone = "deny"
 
 [dependencies]
 axum = "0.6.20"
