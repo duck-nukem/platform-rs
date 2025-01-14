@@ -7,6 +7,8 @@ use crate::authn::models::{NewUser, User};
 use crate::database::Connection;
 use crate::environment::read_mandatory_env_var;
 
+use super::PASSWORD_HASHER_COST;
+
 #[instrument]
 pub async fn find_by_username(mut connection: Connection, username: &str) -> Result<User, Error> {
     sqlx::query_as("SELECT * FROM users WHERE name = $1 LIMIT 1;")
@@ -22,11 +24,14 @@ pub async fn create_user(
 ) -> Result<Option<PgRow>, Error> {
     let mut salt: [u8; 16] = Default::default();
     salt.copy_from_slice(read_mandatory_env_var("PASSWORD_SALT").as_bytes());
-    let hash_parts = hash_with_salt(user.raw_password, 10, salt);
+    let hash_parts = hash_with_salt(user.raw_password, PASSWORD_HASHER_COST, salt);
     let password_hash = hash_parts.map_or_else(|_| String::new(), |parts| parts.to_string());
 
     sqlx::query(
-        "INSERT INTO users (name, password_hash, locale) VALUES ($1, $2, 'en') RETURNING id;",
+        "INSERT INTO users \
+        (name, password_hash, locale) \
+        VALUES ($1, $2, 'en') \
+        RETURNING id;",
     )
     .bind(user.name)
     .bind(&password_hash)
