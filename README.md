@@ -1,3 +1,13 @@
+# THIS PROJECT IS DEPRECATED
+
+It was an initiative to come up with a composition of different utilities to have a foundation for an SSR web application.
+
+Keeping up with the breaking changes in axum and axum login specifically consumes too much time, and in the meanwhile
+https://loco.rs fulfills most goals this project was intending to.
+
+Therefore I'll leave it here as a public archive in case anyone wants to have proof that I've ever written a single line
+of Rust in my life, but otherwise this is completely abandoned. 
+
 # Installation
 
 Use the [justfile](https://github.com/casey/just) to perform certain operations
