@@ -27,10 +27,10 @@ pub fn get_app_secret() -> AppSecret {
     secret_bytes
 }
 
-pub fn build_session_layer(
-    session_storage: impl SessionStore,
+pub fn build_session_layer<T: SessionStore>(
+    session_storage: T,
     secret: &AppSecret,
-) -> SessionLayer<impl SessionStore> {
+) -> SessionLayer<impl SessionStore + use<T>> {
     let session_duration_minutes = read_numeric_env_var("SESSION_LIFETIME_MINUTES", &10);
     let is_secure_cookie = read_bool_env_var("SECURE_COOKIE", true);
 

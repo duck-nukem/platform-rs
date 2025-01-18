@@ -14,7 +14,7 @@ where
     env::var(key)
         .unwrap_or_else(|_| -> String { default.to_string() })
         .parse::<T>()
-        .unwrap_or_else(|_| panic!("Non-numeric value provided for {key}"))
+        .unwrap_or_else(|_| panic!("{}", "Non-numeric value provided for {key}"))
 }
 
 pub fn read_env_var(key: &str, default: &str) -> String {
@@ -23,6 +23,9 @@ pub fn read_env_var(key: &str, default: &str) -> String {
 
 pub fn read_mandatory_env_var(key: &str) -> String {
     env::var(key).unwrap_or_else(|_| {
-        panic!("{key} is a required environment variable, but it wasn't found!")
+        panic!(
+            "{}",
+            "{key} is a required environment variable, but it wasn't found!"
+        )
     })
 }
