@@ -1,7 +1,8 @@
 [package]
 name = "platform-rs"
-version = "0.1.0"
-edition = "2018"
+version = "0.2.0"
+edition = "2021"
+authors = ["Alex Szabo <kreatemore@gmail.com>"]
 
 [profile.dev]
 opt-level = 0
